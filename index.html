@@ -113,6 +113,23 @@
   .node:active .orb{transform:scale(.93)}
   .orb.done{background:var(--green);border-color:var(--green-dark);box-shadow:0 4px 0 var(--green-dark)}
   .orb.open{background:var(--red);border-color:var(--red-dark);box-shadow:0 4px 0 var(--red-dark)}
+
+  .tour{min-height:100dvh;display:flex;flex-direction:column;padding:18px 20px 26px}
+  .tourtop{height:34px;display:flex;justify-content:flex-end}
+  .tskip{background:none;border:0;color:var(--muted);font:inherit;font-weight:700;
+         font-size:15px;padding:6px 2px;cursor:pointer}
+  .tourmid{flex:1;display:flex;flex-direction:column;justify-content:center;
+           align-items:center;text-align:center;padding:0 6px}
+  .touric{width:104px;height:104px;border-radius:30px;display:flex;align-items:center;
+          justify-content:center;margin-bottom:26px}
+  .touric .ic-svg{width:52px;height:52px}
+  .tourmid h2{font-size:27px;font-weight:800;letter-spacing:-.5px;margin-bottom:12px}
+  .tourmid p{font-size:16px;line-height:1.55;color:var(--muted);max-width:330px}
+  .tourbot{display:flex;flex-direction:column;gap:18px;align-items:center}
+  .dots{display:flex;gap:7px}
+  .dots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}
+  .dots i.on{background:var(--red);width:20px;border-radius:4px}
+  .tourbot .cta{width:100%}
   .ic-svg{width:26px;height:26px;display:block}
   .stat .ic-svg{width:19px;height:19px}
   .ic-svg.mini{width:17px;height:17px;display:inline-block;vertical-align:-3px}
@@ -1921,7 +1938,7 @@ const todayStr = () => new Date().toISOString().slice(0,10);
 
 const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,hearts:5,heartDay:todayStr(),
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
-                      mark:null, amb:null, openUnits:null, cv:CONTENT_VERSION});
+                      mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
 let USERS = {}, ACTIVE = null, S = fresh();
 
@@ -2057,6 +2074,11 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    Von Hand gezeichnet statt Emoji, damit sie auf jedem
    Gerät gleich aussehen und die Farbe der Einheit annehmen. */
 const ICON = {
+  mic:'<path d="M12 3.6a3.2 3.2 0 0 1 3.2 3.2v4.6a3.2 3.2 0 0 1-6.4 0V6.8A3.2 3.2 0 0 1 12 3.6Z"/><path d="M5.6 10.9v.7a6.4 6.4 0 0 0 12.8 0v-.7M12 18v2.6"/>',
+  disk:'<path d="M4.8 3.8h11.5l3.1 3.1v13.3H4.8Z"/><path d="M8.2 3.8v5.3h6.4V3.8"/><rect x="7.6" y="13" width="8.8" height="7.2"/>',
+  quest:'<circle cx="12" cy="12" r="8.8"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.9.5c0 1.7-2.5 2-2.5 3.6"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>',
+  exit:'<path d="M14.6 3.8h4.2a1.6 1.6 0 0 1 1.6 1.6v13.2a1.6 1.6 0 0 1-1.6 1.6h-4.2"/><path d="M9.4 15.8 5.6 12l3.8-3.8M5.6 12h9.4"/>',
+  route:'<circle cx="6.4" cy="6.4" r="2.6"/><circle cx="17.6" cy="17.6" r="2.6"/><path d="M9 6.4h4.6a4 4 0 0 1 0 8H10.4a4 4 0 0 0 0 8H15"/>',
   rain:'<path d="M7.4 15.4a4.4 4.4 0 0 1-.4-8.8 5.6 5.6 0 0 1 10.7 1.3 3.9 3.9 0 0 1-.8 7.5"/><path d="M8.6 18.2l-.9 2.4M12 18.2l-.9 2.4M15.4 18.2l-.9 2.4"/>',
   sea:'<path d="M2.5 10q2.4-3 4.8 0t4.8 0t4.8 0"/><path d="M2.5 15q2.4-3 4.8 0t4.8 0t4.8 0"/>',
   leaf:'<path d="M20.2 4.2C10.4 3.4 4.6 8 4.6 14a5.6 5.6 0 0 0 5.6 5.6c6 0 10.6-5.8 10-15.4Z"/><path d="M4.8 20.4C7 16 11.4 12 16.6 9.6"/>',
@@ -2359,13 +2381,13 @@ function authScreen(mode){
     if(USERS[slug(name)]){ g("e").textContent = "Diesen Namen gibt es auf diesem Gerät schon."; return; }
     USERS[slug(name)] = { name, pin, data: fresh() };
     ACTIVE = slug(name); S = USERS[ACTIVE].data;
-    saveAll(); home();
+    saveAll(); enterApp();
   };
   if(g("toLogin")) g("toLogin").onclick = () => authScreen("login");
   if(g("toNew")) g("toNew").onclick = () => authScreen("new");
   if(g("guest")) g("guest").onclick = () => {
     if(!USERS["__gast"]) USERS["__gast"] = {name:"Gast", pin:"", data:fresh()};
-    ACTIVE = "__gast"; S = USERS[ACTIVE].data; saveAll(); home();
+    ACTIVE = "__gast"; S = USERS[ACTIVE].data; saveAll(); enterApp();
   };
   app.querySelectorAll("[data-pick]").forEach(b=>{
     b.onclick = () => pinScreen(b.dataset.pick);
@@ -2374,7 +2396,7 @@ function authScreen(mode){
 
 function pinScreen(key){
   const u = USERS[key];
-  if(!u.pin){ ACTIVE = key; S = Object.assign(fresh(), u.data); saveAll(); home(); return; }
+  if(!u.pin){ ACTIVE = key; S = Object.assign(fresh(), u.data); saveAll(); enterApp(); return; }
   app.innerHTML = `<div class="auth">
     <h1 class="brand">Hallo ${esc(u.name)}</h1>
     <p class="lead">Gib deine vierstellige PIN ein.</p>
@@ -2388,7 +2410,7 @@ function pinScreen(key){
   g("p").focus();
   g("go").onclick = () => {
     if((g("p").value||"").trim() !== u.pin){ g("e").textContent = "Die PIN stimmt nicht."; return; }
-    ACTIVE = key; S = Object.assign(fresh(), u.data); saveAll(); home();
+    ACTIVE = key; S = Object.assign(fresh(), u.data); saveAll(); enterApp();
   };
   g("back").onclick = () => authScreen("login");
 }
@@ -2404,11 +2426,12 @@ function profileSheet(){
         <span class="ava sm">${esc((USERS[k].name[0]||"?").toUpperCase())}</span>
         <span>Zu ${esc(USERS[k].name)} wechseln</span></button>`).join("")}
     <button class="row" id="tgSound"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.sound?svgIcon("phones","mini"):svgIcon("mute","mini")}</span><span>Töne ${S.sound?"an":"aus"}</span></button>
-    <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?"🗣":"🤐"}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
-    <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">💾</span><span>Fortschritt sichern oder laden</span></button>
-    <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">❓</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
+    <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?svgIcon("mic","mini"):svgIcon("mute","mini")}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
+    <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>
+    <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
+    <button class="row" id="tour"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("route","mini")}</span><span>Rundgang noch einmal ansehen</span></button>
     <button class="row" data-sw="__new__"><span class="ava sm">+</span><span>Neues Profil</span></button>
-    <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">⎋</span><span>Abmelden</span></button>
+    <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("exit","mini")}</span><span>Abmelden</span></button>
     <p class="note">Dein Fortschritt liegt auf diesem Gerät. Auf einem anderen Handy startest du neu.<br>
       Stand ${BUILD} · ${TOTAL} Lektionen · ${BONUS.reduce((n,b)=>n+b.cards.length,0)} Sprichwörter · ${KULTUR.reduce((n,k)=>n+k.cards.length,0)} Kulturtexte</p>
     <button class="cta ghost" id="close">Schließen</button>
@@ -2421,6 +2444,7 @@ function profileSheet(){
   el.querySelector("#tgVoice").onclick = () => { S.voice = !S.voice; save(); kill(); profileSheet(); };
   el.querySelector("#voiceHelp").onclick = () => { kill(); voiceHelpScreen(); };
   el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
+  el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
   el.querySelector("#out").onclick = () => { saveAll(); ACTIVE = null; S = fresh(); saveAll(); kill(); authScreen("login"); };
   el.querySelectorAll("[data-sw]").forEach(b=>{
     b.onclick = () => {
@@ -2428,6 +2452,50 @@ function profileSheet(){
       if(b.dataset.sw === "__new__") authScreen("new"); else pinScreen(b.dataset.sw);
     };
   });
+}
+
+
+/* ---------- 3d. RUNDGANG ----------
+   Beim ersten Start einmal, danach jederzeit im Profil. */
+const TOUR = [
+  { ic:"route", c:"#fc4847", t:"So läuft es ab",
+    x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
+  { ic:"tea", c:"#2f7fd4", t:"Çay und Simit",
+    x:"Für richtige Antworten sammelst du Çay. Jeder Fehler kostet ein Simit, davon hast du fünf am Tag. Am nächsten Morgen liegen wieder fünf im Korb." },
+  { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
+    x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
+  { ic:"phones", c:"#c9931f", t:"Die Hörecke",
+    x:"Sprichwörter und Redewendungen, eins nach dem anderen. Erst das Türkische, dann die Bedeutung, dann wann man es wirklich sagt." },
+  { ic:"scroll", c:"#2f9e5c", t:"Merkliste",
+    x:"Was dir gefällt, legst du mit einem Tipp ab. Oben rechts findest du alles wieder." },
+  { ic:"mic", c:"#b8408a", t:"Türkische Stimme",
+    x:"Hat dein Gerät eine türkische Stimme, hörst du die Wörter auch. Hat es keine, bleibt die App still statt falsch zu sprechen. Wie du sie einrichtest, steht in deinem Profil." }
+];
+
+function enterApp(){
+  if(S.tourSeen) home(); else tourScreen(0);
+}
+
+function tourScreen(i){
+  const c = TOUR[i], last = i === TOUR.length - 1;
+  app.innerHTML = `<div class="tour">
+    <div class="tourtop">
+      <button class="tskip" id="skip">${last ? "" : "Überspringen"}</button>
+    </div>
+    <div class="tourmid">
+      <div class="touric" style="background:${c.c}1f;color:${c.c}">${svgIcon(c.ic)}</div>
+      <h2>${esc(c.t)}</h2>
+      <p>${esc(c.x)}</p>
+    </div>
+    <div class="tourbot">
+      <div class="dots">${TOUR.map((_,k)=>`<i class="${k===i?"on":""}"></i>`).join("")}</div>
+      <button class="cta red" id="next">${last ? "Los geht es" : "Weiter"}</button>
+    </div>
+  </div>`;
+  const done = () => { S.tourSeen = true; save(); home(); };
+  const sk = document.getElementById("skip");
+  if(sk) sk.onclick = done;
+  document.getElementById("next").onclick = () => { if(last) done(); else tourScreen(i + 1); };
 }
 
 /* ---------- 3c. PREMIUM-SPERRE ---------- */
