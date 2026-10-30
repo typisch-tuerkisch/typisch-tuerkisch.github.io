@@ -1994,7 +1994,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},musik:true,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -2032,6 +2032,8 @@ function migrate(){
     }
   });
   if(ACTIVE && USERS[ACTIVE]) S = Object.assign(fresh(), USERS[ACTIVE].data);
+  /* Früher gab es drei erzeugte Klänge, jetzt nur noch den Wald. */
+  if(S.amb && S.amb !== "wald"){ S.amb = "wald"; changed = true; }
   if(changed) saveAll();
 }
 
@@ -2131,6 +2133,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    Von Hand gezeichnet statt Emoji, damit sie auf jedem
    Gerät gleich aussehen und die Farbe der Einheit annehmen. */
 const ICON = {
+  note:'<path d="M9.4 17.6V5.2l9.4-1.8v12.4"/><ellipse cx="6.8" cy="17.8" rx="2.6" ry="2.2"/><ellipse cx="16.2" cy="15.8" rx="2.6" ry="2.2"/>',
   target:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
   mic:'<path d="M12 3.6a3.2 3.2 0 0 1 3.2 3.2v4.6a3.2 3.2 0 0 1-6.4 0V6.8A3.2 3.2 0 0 1 12 3.6Z"/><path d="M5.6 10.9v.7a6.4 6.4 0 0 0 12.8 0v-.7M12 18v2.6"/>',
   disk:'<path d="M4.8 3.8h11.5l3.1 3.1v13.3H4.8Z"/><path d="M8.2 3.8v5.3h6.4V3.8"/><rect x="7.6" y="13" width="8.8" height="7.2"/>',
@@ -2354,45 +2357,53 @@ function tone(freq, start, dur, vol, type){
     o.start(t0); o.stop(t0 + dur + 0.02);
   }catch(e){}
 }
-/* ---------- Naturklang im Hintergrund ----------
-   Wird im Browser erzeugt, keine Audiodatei, läuft endlos. */
-let AMB = null;
-function ambStop(){
-  try{ if(AMB){ AMB.src.stop(); if(AMB.lfo) AMB.lfo.stop(); } }catch(e){}
-  AMB = null;
+/* ---------- Musik und Naturklang ----------
+   Zwei echte Dateien. Browser lassen Ton erst nach einer
+   Berührung zu, deshalb wird beim ersten Tippen gestartet. */
+let MUSIK = null, WALD = null, gesteDa = false;
+
+function musikEl(){
+  if(!MUSIK){
+    MUSIK = new Audio("audio/musik.mp3");
+    MUSIK.loop = true; MUSIK.volume = 0.20; MUSIK.preload = "none";
+  }
+  return MUSIK;
 }
-function ambStart(kind){
-  const c = ac(); if(!c) return false;
-  ambStop();
+function waldLaeuft(){ return !!(WALD && !WALD.paused); }
+function musikAn(){
+  /* Der Wald hat Vorrang, solange er wirklich läuft. */
+  if(!S.musik || waldLaeuft()) return;
+  try{ const pr = musikEl().play(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){}
+}
+function musikAus(){ try{ if(MUSIK) MUSIK.pause(); }catch(e){} }
+
+function ambStop(){
+  try{ if(WALD) WALD.pause(); }catch(e){}
+  musikAn();
+}
+function ambStart(){
   try{
-    const n = 3 * c.sampleRate;
-    const buf = c.createBuffer(1, n, c.sampleRate);
-    const d = buf.getChannelData(0);
-    let last = 0;
-    for(let i=0;i<n;i++){
-      const w = Math.random()*2 - 1;
-      last = (last + 0.02*w) / 1.02;
-      d[i] = last * 3.2;
+    if(!WALD){
+      WALD = new Audio("audio/wald.mp3");
+      WALD.loop = true; WALD.volume = 0.55; WALD.preload = "none";
     }
-    const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
-    const flt = c.createBiquadFilter();
-    const g = c.createGain();
-    let lfo = null;
-    if(kind === "yagmur"){ flt.type = "bandpass"; flt.frequency.value = 1500; flt.Q.value = 0.35; g.gain.value = 0.17; }
-    else if(kind === "deniz"){ flt.type = "lowpass"; flt.frequency.value = 520; g.gain.value = 0.20; }
-    else { flt.type = "lowpass"; flt.frequency.value = 340; g.gain.value = 0.16; }
-    src.connect(flt); flt.connect(g); g.connect(c.destination);
-    src.start();
-    if(kind === "deniz"){
-      lfo = c.createOscillator(); lfo.frequency.value = 0.11;
-      const lg = c.createGain(); lg.gain.value = 0.11;
-      lfo.connect(lg); lg.connect(g.gain); lfo.start();
-    }
-    AMB = { src, g, lfo, kind };
+    musikAus();
+    const pr = WALD.play(); if(pr && pr.catch) pr.catch(()=>{});
     return true;
   }catch(e){ return false; }
 }
-const AMBS = [["yagmur","rain","Regen"],["deniz","sea","Meer"],["ruzgar","leaf","Wind"]];
+
+function ersteGeste(){
+  if(gesteDa) return;
+  gesteDa = true;
+  musikAn();
+}
+try{
+  document.addEventListener("pointerdown", ersteGeste, {once:true});
+  document.addEventListener("keydown", ersteGeste, {once:true});
+}catch(e){}
+
+const AMBS = [["wald","leaf","Waldgeräusche"]];
 
 function sfx(kind){
   if(!S.sound) return;
@@ -2496,6 +2507,7 @@ function profileSheet(){
         <span class="ava sm">${esc((USERS[k].name[0]||"?").toUpperCase())}</span>
         <span>Zu ${esc(USERS[k].name)} wechseln</span></button>`).join("")}
     <button class="row" id="tgSound"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.sound?svgIcon("phones","mini"):svgIcon("mute","mini")}</span><span>Töne ${S.sound?"an":"aus"}</span></button>
+    <button class="row" id="tgMusik"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.musik?svgIcon("note","mini"):svgIcon("mute","mini")}</span><span>Musik ${S.musik?"an":"aus"}</span></button>
     <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?svgIcon("mic","mini"):svgIcon("mute","mini")}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
     <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>
     <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
@@ -2512,6 +2524,11 @@ function profileSheet(){
   el.querySelector("#close").onclick = kill;
   el.querySelector("#tgSound").onclick = () => { S.sound = !S.sound; save(); if(S.sound) sfx("save"); kill(); profileSheet(); };
   el.querySelector("#tgVoice").onclick = () => { S.voice = !S.voice; save(); kill(); profileSheet(); };
+  el.querySelector("#tgMusik").onclick = () => {
+    S.musik = !S.musik; save();
+    if(S.musik) musikAn(); else musikAus();
+    kill(); profileSheet();
+  };
   el.querySelector("#voiceHelp").onclick = () => { kill(); voiceHelpScreen(); };
   el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
@@ -2545,6 +2562,7 @@ const TOUR = [
 ];
 
 function enterApp(){
+  musikAn();
   if(S.tourSeen) home(); else tourScreen(0);
 }
 
@@ -2895,7 +2913,7 @@ function wireAmb(){
     b.onclick = () => {
       const k = b.dataset.amb;
       if(k === "off" || S.amb === k){ ambStop(); S.amb = null; }
-      else { if(ambStart(k)) S.amb = k; else S.amb = null; }
+      else { if(ambStart()) S.amb = k; else S.amb = null; }
       save();
       app.querySelectorAll("[data-amb]").forEach(x=>{
         x.classList.toggle("on", S.amb ? x.dataset.amb === S.amb : x.dataset.amb === "off");
@@ -2964,7 +2982,7 @@ function kulturRead(ti, scrollTo){
       save(); kulturRead(ti, ci);
     };
   });
-  if(S.amb && !AMB){ if(ambStart(S.amb)) wireAmb(); }
+  if(S.amb){ ambStart(); }
   if(scrollTo !== null && scrollTo !== undefined){
     const el = document.getElementById("sec"+scrollTo);
     if(el) setTimeout(()=>el.scrollIntoView({block:"start"}), 60);
