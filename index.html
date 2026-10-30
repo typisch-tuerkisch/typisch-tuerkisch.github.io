@@ -78,6 +78,43 @@
   .bar{height:9px;border-radius:99px;background:var(--surface-2);overflow:hidden}
   .bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),#f3d383);transition:width .5s cubic-bezier(.2,.8,.2,1)}
 
+
+  .orb.gruen{background:var(--green-soft);color:var(--green-dark);
+             box-shadow:inset 0 0 0 2px var(--green)}
+  .node.ueb{border-left:3px solid var(--green)}
+
+  /* Fortschritt */
+  .fswrap{padding:0 18px 30px}
+  .fsstufe{background:var(--red-soft);border:1px solid #ffd9d7;border-radius:var(--r);
+           padding:18px;margin-bottom:14px}
+  .fsstufe .kick{font-size:11.5px;font-weight:800;letter-spacing:1.6px;
+                 text-transform:uppercase;color:var(--red-dark)}
+  .fsstufe h2{margin:6px 0 7px;font-size:24px;font-weight:900;letter-spacing:-.5px}
+  .fsstufe p{margin:0;font-size:14.5px;font-weight:600;line-height:1.55;color:#6b4a49}
+  .fsnext{margin-top:12px;font-size:13px;font-weight:700;color:var(--red-dark)}
+  .fscard{background:var(--surface);border:1px solid var(--line);
+          border-radius:var(--r);padding:16px}
+  .fscard.tight{padding:6px 10px}
+  .fsrow{margin-bottom:14px}
+  .fsrow:last-of-type{margin-bottom:10px}
+  .fshead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .fshead span{font-size:14px;font-weight:700}
+  .fshead b{font-size:13px;font-weight:800;color:var(--muted)}
+  .fsnote{margin:14px 0 0;font-size:13.5px;font-weight:600;line-height:1.55;color:var(--muted)}
+  .fsh3{margin:22px 0 10px;font-size:15px;font-weight:900}
+  .fsunit{width:100%;display:flex;gap:12px;align-items:flex-start;text-align:left;
+          background:none;padding:12px 8px;border-bottom:1px solid var(--line)}
+  .fsunit:last-child{border-bottom:0}
+  .fsunit[disabled]{opacity:1;cursor:default}
+  .fsdot{width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none}
+  .fsu{flex:1;min-width:0}
+  .bar.sm{height:6px}
+  .fstest{display:block;margin-top:6px;font-size:12px;font-weight:700;color:var(--muted)}
+  .fsend{margin:18px 2px 0;font-size:13.5px;font-weight:600;line-height:1.6;color:var(--muted)}
+  .dailygo{width:100%;display:flex;justify-content:space-between;align-items:center;
+           margin-top:12px;padding-top:11px;border-top:1px solid var(--line);
+           background:none;font-size:13px;font-weight:800}
+  .dailygo .go{color:var(--red);font-weight:800}
   .path{padding:0 18px 40px;display:flex;flex-direction:column;gap:0}
   .unit{margin-bottom:10px}
   .unit-head{
@@ -1957,7 +1994,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -2094,6 +2131,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    Von Hand gezeichnet statt Emoji, damit sie auf jedem
    Gerät gleich aussehen und die Farbe der Einheit annehmen. */
 const ICON = {
+  target:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
   mic:'<path d="M12 3.6a3.2 3.2 0 0 1 3.2 3.2v4.6a3.2 3.2 0 0 1-6.4 0V6.8A3.2 3.2 0 0 1 12 3.6Z"/><path d="M5.6 10.9v.7a6.4 6.4 0 0 0 12.8 0v-.7M12 18v2.6"/>',
   disk:'<path d="M4.8 3.8h11.5l3.1 3.1v13.3H4.8Z"/><path d="M8.2 3.8v5.3h6.4V3.8"/><rect x="7.6" y="13" width="8.8" height="7.2"/>',
   quest:'<circle cx="12" cy="12" r="8.8"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.9.5c0 1.7-2.5 2-2.5 3.6"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>',
@@ -2396,8 +2434,6 @@ function authScreen(mode){
     ${isNew ? `
       <div class="field"><label>Benutzername</label>
         <input id="u" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="z.B. lena_b" maxlength="20"></div>
-      <div class="field"><label>PIN, vier Ziffern, optional</label>
-        <input id="p" inputmode="numeric" autocomplete="off" placeholder="2468" maxlength="4"></div>
       <div class="err" id="e"></div>
       <button class="cta" id="go">Profil erstellen</button>
       ${names.length ? `<div class="switchline">Schon ein Profil? <button id="toLogin">Anmelden</button></div>` : ""}
@@ -2411,11 +2447,9 @@ function authScreen(mode){
   const g = id => document.getElementById(id);
   if(g("go")) g("go").onclick = () => {
     const name = (g("u").value||"").trim();
-    const pin = (g("p").value||"").trim();
     if(name.length < 2){ g("e").textContent = "Bitte einen Namen mit mindestens zwei Zeichen."; return; }
-    if(pin && !/^\d{4}$/.test(pin)){ g("e").textContent = "Die PIN muss aus genau vier Ziffern bestehen."; return; }
     if(USERS[slug(name)]){ g("e").textContent = "Diesen Namen gibt es auf diesem Gerät schon."; return; }
-    USERS[slug(name)] = { name, pin, data: fresh() };
+    USERS[slug(name)] = { name, pin: "", data: fresh() };
     ACTIVE = slug(name); S = USERS[ACTIVE].data;
     saveAll(); enterApp();
   };
@@ -2498,6 +2532,8 @@ const TOUR = [
     x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
   { ic:"tea", c:"#2f7fd4", t:"Çay und Wörter",
     x:"Für richtige Antworten sammelst du Çay. Oben siehst du außerdem, wie viele verschiedene Wörter dir schon begegnet sind. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
+  { ic:"target", c:"#2f9e5c", t:"Übung des Tages",
+    x:"In jeder Einheit wartet eine kurze Übung, die sich jeden Tag ändert. Zehn Fragen aus dieser Einheit, ohne Bestehen oder Durchfallen. Gut für die Tage, an denen du wenig Zeit hast." },
   { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
     x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
   { ic:"phones", c:"#c9931f", t:"Die Hörecke",
@@ -2579,6 +2615,16 @@ function home(){
       </button>`;
 
     if(expanded){
+      {
+        const u2 = S.ueb && S.ueb[ui], heute = u2 && u2.tag === todayStr();
+        path += `<button class="node ueb" data-ueb="${ui}">
+          <div class="orb gruen">${svgIcon("target")}</div>
+          <div class="meta"><b>Übung des Tages</b>
+            <span>${heute
+              ? "Heute geschafft: " + u2.score + " von " + u2.von + ", gern noch einmal"
+              : UEB_N + " Fragen aus dieser Einheit, jeden Tag andere"}</span></div>
+        </button>`;
+      }
       arr.forEach(i=>{
         const l = FLAT[i], pro = proLocked(i);
         const st = pro ? "lock" : (isDone(i) ? "done" : (isOpen(i) ? "open" : "lock"));
@@ -2628,6 +2674,10 @@ function home(){
       <div class="daily-row"><b>Tagesziel</b><span>${S.dayXp>=DAILY_GOAL ? "geschafft" : S.dayXp+" / "+DAILY_GOAL+" Çay"}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="daily-row" style="margin:9px 0 0"><span>${S.done.length} von ${TOTAL} Lektionen</span><span>${S.streak>0?svgIcon("fire","mini")+" "+tage(S.streak):"Heute starten"}</span></div>
+      <button class="dailygo" id="fsBtn">
+        <span>Stufe ${esc(stufeVon(woerter()).t)}</span>
+        <span class="go">Fortschritt ansehen</span>
+      </button>
     </div>
     <div class="homebtns">
       <button id="kulturBtn">${svgIcon("eye","mini")} Kulturecke</button>
@@ -2644,6 +2694,8 @@ function home(){
   app.querySelectorAll("[data-les]").forEach(b=>{ b.onclick = () => startLesson(+b.dataset.les); });
   app.querySelectorAll("[data-bonus]").forEach(b=>{ b.onclick = () => bonusScreen(+b.dataset.bonus, 0); });
   app.querySelectorAll("[data-exam]").forEach(b=>{ b.onclick = () => startExam(+b.dataset.exam); });
+  app.querySelectorAll("[data-ueb]").forEach(b=>{ b.onclick = () => startUebung(+b.dataset.ueb); });
+  const fb = document.getElementById("fsBtn"); if(fb) fb.onclick = fortschritt;
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
 }
 
@@ -3032,6 +3084,75 @@ function plPlay(){
 
 /* ---------- 4c. ABSCHLUSSTEST ---------- */
 const EXAM_N = 8, EXAM_PASS = 6;
+const UEB_N = 10;
+
+/* Mischen mit festem Startwert: derselbe Tag gibt dieselbe Übung,
+   der nächste Tag eine andere. */
+function mischenFest(arr, saat){
+  let x = 0;
+  for(let i = 0; i < saat.length; i++) x = (x * 31 + saat.charCodeAt(i)) >>> 0;
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){
+    x = (x * 1664525 + 1013904223) >>> 0;
+    const j = x % (i + 1);
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function uebungItems(ui, tag){
+  const pool = [];
+  lessonsOf(ui).forEach(i=>{
+    FLAT[i].items.forEach(it=>{ if(it.k !== "culture") pool.push(it); });
+  });
+  return mischenFest(pool, tag + "#" + ui).slice(0, Math.min(UEB_N, pool.length));
+}
+
+function startUebung(ui){
+  clearAdv();
+  const tag = todayStr();
+  const picked = uebungItems(ui, tag);
+  if(!picked.length){ home(); return; }
+  picked.forEach(it=>{ delete it._played; });
+  L = { idx:-1, ui, ueb:true, tag, items:picked, pos:0, right:0, wrong:0,
+        title:"Übung des Tages", state:"ask", picked:null, built:[], matched:[],
+        msel:null, score:0, t0:Date.now() };
+  render();
+}
+
+function uebungResult(){
+  const n = L.items.length;
+  const gained = L.score * 8 + (L.score === n ? 20 : 0);
+  addXp(gained);
+  if(!S.ueb) S.ueb = {};
+  const vorher = S.ueb[L.ui];
+  S.ueb[L.ui] = { tag: L.tag, score: L.score, von: n };
+  save();
+  sfx("done");
+  const gut = L.score >= Math.ceil(n * 0.7);
+  app.innerHTML = `<div class="result${gut ? " jubel" : ""}">
+    ${mascot("happy")}
+    <div class="bigword" style="color:var(--green);text-shadow:none">${L.score} von ${n}</div>
+    <p>Übung des Tages, ${esc(UNITS[L.ui].t)}</p>
+    <div class="scores">
+      <div class="score gold"><div class="ic">${svgIcon("tea")}</div><div class="v" id="cnt">+0</div><div class="k">Çay</div></div>
+      <div class="score blue"><div class="ic">${svgIcon("clock")}</div><div class="v">${fmtTime(L.t0)}</div><div class="k">Zeit</div></div>
+    </div>
+    <p style="margin-top:20px">${gut
+      ? "Morgen wartet eine neue Übung aus dieser Einheit."
+      : "Kein Grund zur Sorge, Wiederholen ist der halbe Weg. Morgen gibt es eine neue."}${
+      vorher && vorher.tag !== L.tag ? " Beim letzten Mal waren es " + vorher.score + " von " + vorher.von + "." : ""}</p>
+  </div>
+  <div class="foot">
+    <button class="cta red" id="cont">Zur Übersicht</button>
+    <button class="cta ghost" id="again">Noch einmal durchgehen</button>
+  </div>`;
+  document.getElementById("cont").onclick = home;
+  document.getElementById("again").onclick = () => startUebung(L.ui);
+  hochzaehlen("cnt", gained, "+");
+  if(gut) konfetti(L.score === n);
+}
+
 
 function startExam(ui){
   clearAdv();
@@ -3060,6 +3181,112 @@ function boot(){
     save();
   }
   if(ACTIVE && USERS[ACTIVE]) home(); else authScreen("login");
+}
+
+
+/* ---------- 4b. FORTSCHRITT ----------
+   Ehrliche Zahlen statt Abzeichen: wie viele Wörter wirklich
+   vorgekommen sind, wie weit die Einheiten sind, und was bei
+   dem eigenen Tempo noch vor einem liegt. */
+
+/* Alle Wörter, die es in den Lektionen überhaupt gibt */
+let _wAlle = null;
+function woerterGesamt(){
+  if(_wAlle !== null) return _wAlle;
+  const set = new Set();
+  for(const l of FLAT) for(const it of l.items) if(it && it.tr) set.add(it.tr);
+  _wAlle = set.size;
+  return _wAlle;
+}
+
+const STUFEN = [
+  { ab:0,    t:"Ankommen",
+    k:"Begrüßen, danken, dich vorstellen, im Café etwas bestellen." },
+  { ab:120,  t:"Im Alltag",
+    k:"Zahlen, Uhrzeit, einkaufen, nach dem Weg fragen, kurze Sätze bilden." },
+  { ab:350,  t:"Gespräche",
+    k:"Erzählen was du gemacht hast, nachfragen, Höflichkeitsformeln richtig einsetzen." },
+  { ab:700,  t:"Dazwischen lesen",
+    k:"Redewendungen verstehen, Gefühle ausdrücken, merken wenn jemand scherzt." },
+  { ab:1100, t:"Zuhause in der Sprache",
+    k:"Sprichwörter, Anspielungen, der Ton zwischen den Worten." }
+];
+const stufeVon = w => { let x = STUFEN[0]; for(const st of STUFEN) if(w >= st.ab) x = st; return x; };
+
+function balken(label, ist, soll, farbe){
+  const pz = soll ? Math.min(100, Math.round(ist/soll*100)) : 0;
+  return `<div class="fsrow">
+    <div class="fshead"><span>${label}</span><b>${ist} von ${soll}</b></div>
+    <div class="bar"><i style="width:${pz}%;background:${farbe}"></i></div>
+  </div>`;
+}
+
+function fortschritt(){
+  const w = woerter(), wg = woerterGesamt();
+  const st = stufeVon(w);
+  const naechste = STUFEN[STUFEN.indexOf(st) + 1];
+  const spr = S.bonusDone.length * 10;
+  const sprG = BONUS.reduce((n,b)=>n+b.cards.length, 0);
+  const offen = TOTAL - S.done.length;
+
+  /* Tempo aus den eigenen Zahlen, nicht geraten */
+  const tage_ = Math.max(1, S.streak || 1);
+  const proTag = S.done.length ? Math.max(1, Math.round(S.done.length / tage_)) : 0;
+  const prognose = (offen > 0 && proTag > 0)
+    ? `Bei ${proTag} ${proTag===1?"Lektion":"Lektionen"} am Tag, deinem bisherigen Schnitt, sind die restlichen ${offen} in etwa ${Math.ceil(offen/proTag/7)} Wochen durch.`
+    : (offen > 0 ? "Sobald du ein paar Lektionen gemacht hast, steht hier dein eigenes Tempo." : "Du hast alle Lektionen durch.");
+
+  app.innerHTML = topbar() + `<div class="fswrap">
+    <div class="fsstufe">
+      <span class="kick">Deine Stufe</span>
+      <h2>${esc(st.t)}</h2>
+      <p>${esc(st.k)}</p>
+      ${naechste ? `<div class="fsnext">Noch ${naechste.ab - w} Wörter bis <b>${esc(naechste.t)}</b></div>` : ""}
+    </div>
+
+    <div class="fscard">
+      ${balken("Wörter begegnet", w, wg, "var(--green)")}
+      ${balken("Lektionen", S.done.length, TOTAL, "var(--red)")}
+      ${balken("Einheiten bestanden", S.passed.length, UNITS.length, "var(--nazar)")}
+      ${balken("Sprichwörter", spr, sprG, "var(--gold)")}
+      <p class="fsnote">${esc(prognose)}</p>
+    </div>
+
+    <h3 class="fsh3">Einheit für Einheit</h3>
+    <div class="fscard tight">
+      ${UNITS.map((u,ui)=>{
+        const les = lessonsOf(ui), fertig = les.filter(isDone).length;
+        const pz = les.length ? Math.round(fertig/les.length*100) : 0;
+        const best = S.passed.includes(ui);
+        const auf = unitOpen(ui);
+        return `<button class="fsunit" ${auf?`data-go="${ui}"`:"disabled"}>
+          <div class="fsdot" style="background:${auf?u.c:"var(--line)"}"></div>
+          <div class="fsu">
+            <div class="fshead"><span style="${auf?"":"color:var(--muted)"}">${esc(u.t)}</span>
+              <b>${auf ? fertig+"/"+les.length : svgIcon("lock","mini")}</b></div>
+            <div class="bar sm"><i style="width:${auf?pz:0}%;background:${u.c}"></i></div>
+            ${auf ? `<span class="fstest">${best ? "Test bestanden, jederzeit wieder üben" : (examOpen(ui) ? "Test ist offen" : "Test nach Lektionen und Bonus")}</span>` : ""}
+          </div>
+        </button>`;
+      }).join("")}
+    </div>
+
+    <p class="fsend">Die App bringt dir Wörter, Sätze und das Drumherum bei. Richtig sitzen tut es erst, wenn du es mit Menschen benutzt. Such dir jemanden zum Reden, auch wenn du noch stolperst.</p>
+  </div>
+  <div class="foot"><button class="cta red" id="back">Zurück</button></div>`;
+
+  document.getElementById("back").onclick = home;
+  document.getElementById("chip").onclick = profileSheet;
+  app.querySelectorAll("[data-go]").forEach(b=>{
+    b.onclick = () => {
+      const ui = +b.dataset.go;
+      if(!S.openUnits) S.openUnits = [];
+      if(!S.openUnits.includes(ui)) S.openUnits.push(ui);
+      save(); home();
+      const el = document.querySelector(`[data-u="${ui}"]`);
+      if(el) el.scrollIntoView({block:"center"});
+    };
+  });
 }
 
 /* ---------- 5. LEKTION ---------- */
@@ -3198,7 +3425,7 @@ function advance(){
   if(!L || !L.items) return;
   const it = L.items[L.pos];
   if(!it) return;
-  if(L.exam){
+  if(L.exam || L.ueb){
     if(it.k === "match"){ if(!L.qWrong) L.score++; }
     else if(L.state === "right") L.score++;
   }
@@ -3334,6 +3561,7 @@ function hochzaehlen(id, ziel, pre){
 }
 
 function finish(){
+  if(L.ueb) return uebungResult();
   if(L.exam) return examResult();
   const gained = L.right*10 + (L.wrong===0 ? 15 : 5);
   addXp(gained);
