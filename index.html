@@ -92,6 +92,21 @@
   .weiter .wt{display:block;font-size:17px;font-weight:900;letter-spacing:-.3px}
   .weiter .wu{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
 
+  .weiter.wdh{border-left-color:var(--green)}
+  .weiter.wdh .wk{color:var(--green-dark)}
+  .wst{display:flex;gap:8px;margin:0 0 4px}
+  .wst div{flex:1;background:var(--surface);border:1px solid var(--line);
+           border-radius:12px;padding:10px 8px;text-align:center}
+  .wst b{display:block;font-size:19px;font-weight:900;line-height:1.1}
+  .wst span{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-top:3px}
+
+  .vlab{font-size:14.5px;font-weight:800}
+  .klangwahl{display:flex;gap:7px;margin-bottom:9px}
+  .klangwahl button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+    padding:9px 4px;font-size:13px;font-weight:800;color:var(--muted)}
+  .klangwahl button.on{background:var(--red-soft);border-color:var(--red);color:var(--red-dark)}
+
   .vol{padding:11px 2px 7px;border-bottom:1px solid var(--line)}
   .volhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
   .volhead button{background:none;font-size:14.5px;font-weight:800;display:flex;
@@ -2011,7 +2026,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},musik:true,mVol:10,sVol:70,
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},klang:"wald",kVol:25,sVol:70,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -2050,7 +2065,13 @@ function migrate(){
   });
   if(ACTIVE && USERS[ACTIVE]) S = Object.assign(fresh(), USERS[ACTIVE].data);
   /* Früher gab es drei erzeugte Klänge, jetzt nur noch den Wald. */
-  if(S.amb && S.amb !== "wald"){ S.amb = "wald"; changed = true; }
+  /* Früher gab es Musik und Naturklang getrennt, jetzt einen Klang. */
+  if(S.klang == null){
+    S.klang = (S.musik === false && !S.amb) ? "aus" : "wald";
+    if(S.kVol == null) S.kVol = 25;
+    delete S.musik; delete S.mVol; delete S.amb;
+    changed = true;
+  }
   if(changed) saveAll();
 }
 
@@ -2375,55 +2396,72 @@ function tone(freq, start, dur, vol, type){
     o.start(t0); o.stop(t0 + dur + 0.02);
   }catch(e){}
 }
-/* ---------- Musik und Naturklang ----------
-   Zwei echte Dateien. Browser lassen Ton erst nach einer
-   Berührung zu, deshalb wird beim ersten Tippen gestartet. */
-let MUSIK = null, WALD = null, gesteDa = false;
+/* ---------- Hintergrundklang ----------
+   Eine Datei, leise im Hintergrund. Der Regler läuft über
+   Web Audio, weil iPhones audio.volume schlicht ignorieren. */
+const KLANG_DATEI = { wald: "audio/wald.mp3", musik: "audio/musik.mp3" };
+let KLANG = null, KSRC = null, KGAIN = null, gesteDa = false;
 
-function musikEl(){
-  if(!MUSIK){
-    MUSIK = new Audio("audio/musik.mp3");
-    MUSIK.loop = true; MUSIK.preload = "none";
-  }
-  MUSIK.volume = Math.min(1, Math.max(0, (S.mVol == null ? 10 : S.mVol) / 100));
-  return MUSIK;
-}
-function musikLaut(){ if(MUSIK) MUSIK.volume = Math.min(1, Math.max(0, (S.mVol == null ? 10 : S.mVol) / 100)); }
-function waldLaeuft(){ return !!(WALD && !WALD.paused); }
-function musikAn(){
-  /* Der Wald hat Vorrang, solange er wirklich läuft. */
-  if(!S.musik || waldLaeuft()) return;
-  try{ const pr = musikEl().play(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){}
-}
-function musikAus(){ try{ if(MUSIK) MUSIK.pause(); }catch(e){} }
+const klangArt = () => (S.klang == null ? "wald" : S.klang);
+const klangVol = () => Math.min(1, Math.max(0, (S.kVol == null ? 25 : S.kVol) / 100));
 
-function ambStop(){
-  try{ if(WALD) WALD.pause(); }catch(e){}
-  musikAn();
+function klangEl(){
+  if(!KLANG){ KLANG = new Audio(); KLANG.loop = true; KLANG.preload = "none"; }
+  return KLANG;
 }
-function ambStart(){
+
+function klangKette(){
+  if(KGAIN) return true;
+  const c = ac(); if(!c) return false;
   try{
-    if(!WALD){
-      WALD = new Audio("audio/wald.mp3");
-      WALD.loop = true; WALD.volume = 0.55; WALD.preload = "none";
-    }
-    musikAus();
-    const pr = WALD.play(); if(pr && pr.catch) pr.catch(()=>{});
+    KSRC = c.createMediaElementSource(klangEl());
+    KGAIN = c.createGain();
+    KSRC.connect(KGAIN); KGAIN.connect(c.destination);
     return true;
   }catch(e){ return false; }
+}
+
+function klangLaut(){
+  const v = klangVol();
+  if(KGAIN){
+    try{ KGAIN.gain.value = v; }catch(e){}
+    try{ if(KLANG) KLANG.volume = 1; }catch(e){}
+  } else {
+    try{ if(KLANG) KLANG.volume = v; }catch(e){}
+  }
+}
+
+function klangAus(){ try{ if(KLANG) KLANG.pause(); }catch(e){} }
+
+function klangAn(){
+  const art = klangArt();
+  if(art === "aus"){ klangAus(); return; }
+  const datei = KLANG_DATEI[art];
+  if(!datei) return;
+  const el = klangEl();
+  if(!el.src || el.src.indexOf(datei) < 0){ el.src = datei; }
+  klangKette();
+  klangLaut();
+  try{ const c = ac(); if(c && c.state === "suspended") c.resume(); }catch(e){}
+  try{ const pr = el.play(); if(pr && pr.catch) pr.catch(()=>{}); }catch(e){}
+}
+
+function klangWaehle(art){
+  S.klang = art; save();
+  if(art === "aus") klangAus(); else klangAn();
 }
 
 function ersteGeste(){
   if(gesteDa) return;
   gesteDa = true;
-  musikAn();
+  klangAn();
 }
 try{
   document.addEventListener("pointerdown", ersteGeste, {once:true});
   document.addEventListener("keydown", ersteGeste, {once:true});
 }catch(e){}
 
-const AMBS = [["wald","leaf","Waldgeräusche"]];
+const KLANGWAHL = [["wald","leaf","Wald"],["musik","note","Musik"],["aus","mute","Aus"]];
 
 function sfx(kind){
   if(!S.sound) return;
@@ -2527,8 +2565,9 @@ function profileSheet(){
         <span class="ava sm">${esc((USERS[k].name[0]||"?").toUpperCase())}</span>
         <span>Zu ${esc(USERS[k].name)} wechseln</span></button>`).join("")}
     <div class="vol">
-      <div class="volhead"><button id="tgMusik">${S.musik?svgIcon("note","mini"):svgIcon("mute","mini")} Musik</button><b id="mVal">${S.musik ? (S.mVol==null?10:S.mVol)+" Prozent" : "aus"}</b></div>
-      <input type="range" id="mVol" min="0" max="100" step="5" value="${S.mVol==null?10:S.mVol}" ${S.musik?"":"disabled"} aria-label="Musik Lautstärke">
+      <div class="volhead"><span class="vlab">Hintergrundklang</span><b id="kVal">${klangArt()==="aus" ? "aus" : (S.kVol==null?25:S.kVol)+" Prozent"}</b></div>
+      <div class="klangwahl">${KLANGWAHL.map(([k,ic,l])=>`<button class="${klangArt()===k?"on":""}" data-klang="${k}">${svgIcon(ic,"mini")} ${l}</button>`).join("")}</div>
+      <input type="range" id="kVol" min="0" max="100" step="5" value="${S.kVol==null?25:S.kVol}" ${klangArt()==="aus"?"disabled":""} aria-label="Lautstärke des Hintergrundklangs">
     </div>
     <div class="vol">
       <div class="volhead"><button id="tgSound">${S.sound?svgIcon("phones","mini"):svgIcon("mute","mini")} Töne in den Übungen</button><b id="sVal">${S.sound ? (S.sVol==null?70:S.sVol)+" Prozent" : "aus"}</b></div>
@@ -2549,20 +2588,19 @@ function profileSheet(){
   el.onclick = e => { if(e.target === el) kill(); };
   el.querySelector("#close").onclick = kill;
   el.querySelector("#tgSound").onclick = () => { S.sound = !S.sound; save(); if(S.sound) sfx("save"); kill(); profileSheet(); };
-  const mr = el.querySelector("#mVol"), sr = el.querySelector("#sVol");
-  if(mr) mr.oninput = () => { S.mVol = +mr.value; musikLaut(); save();
-    el.querySelector("#mVal").textContent = S.mVol + " Prozent"; };
+  const mr = el.querySelector("#kVol"), sr = el.querySelector("#sVol");
+  if(mr) mr.oninput = () => { S.kVol = +mr.value; klangLaut(); save();
+    el.querySelector("#kVal").textContent = S.kVol + " Prozent"; };
+  el.querySelectorAll("[data-klang]").forEach(bq=>{
+    bq.onclick = () => { klangWaehle(bq.dataset.klang); kill(); profileSheet(); };
+  });
   if(sr){
     sr.oninput = () => { S.sVol = +sr.value; save();
       el.querySelector("#sVal").textContent = S.sVol + " Prozent"; };
     sr.onchange = () => { if(S.sound) sfx("right"); };
   }
   el.querySelector("#tgVoice").onclick = () => { S.voice = !S.voice; save(); kill(); profileSheet(); };
-  el.querySelector("#tgMusik").onclick = () => {
-    S.musik = !S.musik; save();
-    if(S.musik){ musikLaut(); musikAn(); } else musikAus();
-    kill(); profileSheet();
-  };
+
   el.querySelector("#voiceHelp").onclick = () => { kill(); voiceHelpScreen(); };
   el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
@@ -2583,8 +2621,12 @@ const TOUR = [
     x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
   { ic:"tea", c:"#2f7fd4", t:"Çay und Wörter",
     x:"Für richtige Antworten sammelst du Çay. Oben siehst du außerdem, wie viele verschiedene Wörter dir schon begegnet sind. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
+  { ic:"book", c:"#2f9e5c", t:"Wörter kommen wieder",
+    x:"Jedes Wort merkt sich, wie gut es bei dir sitzt. Was wackelt, kommt bald wieder, was sitzt, erst in Wochen. Gemeistert ist ein Wort erst, wenn du es an mehreren Tagen erinnert hast, nicht nach einem Glückstreffer." },
   { ic:"target", c:"#2f9e5c", t:"Übung des Tages",
     x:"In jeder Einheit wartet eine kurze Übung, die sich jeden Tag ändert. Zehn Fragen aus dieser Einheit, ohne Bestehen oder Durchfallen. Gut für die Tage, an denen du wenig Zeit hast." },
+  { ic:"leaf", c:"#2f9e5c", t:"Leise im Hintergrund",
+    x:"Im Hintergrund läuft ein Waldklang, ganz leise. In deinem Profil kannst du ihn lauter oder leiser stellen, auf Musik umschalten oder ganz ausmachen." },
   { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
     x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
   { ic:"phones", c:"#c9931f", t:"Die Hörecke",
@@ -2596,7 +2638,7 @@ const TOUR = [
 ];
 
 function enterApp(){
-  musikAn();
+  klangAn();
   if(S.tourSeen) home(); else tourScreen(0);
 }
 
@@ -2750,6 +2792,15 @@ function home(){
         <span class="wu">${esc(u.t)}</span>
       </button>`;
     })()}
+    ${(()=>{
+      const f = faellige().length;
+      if(!f) return "";
+      return `<button class="weiter wdh" id="wdhBtn">
+        <span class="wk">Wiederholen</span>
+        <span class="wt">${f} ${f===1?"Wort wartet":"Wörter warten"}</span>
+        <span class="wu">Was zurückkommt, bleibt hängen</span>
+      </button>`;
+    })()}
     <div class="homebtns">
       <button id="kulturBtn">${svgIcon("eye","mini")} Kulturecke</button>
       <button id="hoerBtn">${svgIcon("phones","mini")} Hörecke</button>
@@ -2769,6 +2820,8 @@ function home(){
   const fb = document.getElementById("fsBtn"); if(fb) fb.onclick = fortschritt;
   const wb = document.getElementById("weiterBtn");
   if(wb) wb.onclick = () => { const n = naechsteOffene(); if(n >= 0) startLesson(n); };
+  const wd = document.getElementById("wdhBtn");
+  if(wd) wd.onclick = startWdh;
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
 }
 
@@ -2959,19 +3012,16 @@ function voiceHelpScreen(){
 /* ---------- 4b1. KULTURECKE (zum Lesen) ---------- */
 function ambBar(){
   return `<div class="ambbar">
-    ${AMBS.map(([k,ic,l])=>`<button class="${S.amb===k?"on":""}" data-amb="${k}">${svgIcon(ic,"mini")} ${l}</button>`).join("")}
-    <button class="${S.amb?"":"on"}" data-amb="off">${svgIcon("mute","mini")} Still</button>
+    ${KLANGWAHL.map(([k,ic,l])=>`<button class="${klangArt()===k?"on":""}" data-amb="${k}">${svgIcon(ic,"mini")} ${l}</button>`).join("")}
   </div>`;
 }
 function wireAmb(){
   app.querySelectorAll("[data-amb]").forEach(b=>{
     b.onclick = () => {
       const k = b.dataset.amb;
-      if(k === "off" || S.amb === k){ ambStop(); S.amb = null; }
-      else { if(ambStart()) S.amb = k; else S.amb = null; }
-      save();
+      klangWaehle(k);
       app.querySelectorAll("[data-amb]").forEach(x=>{
-        x.classList.toggle("on", S.amb ? x.dataset.amb === S.amb : x.dataset.amb === "off");
+        x.classList.toggle("on", x.dataset.amb === klangArt());
       });
     };
   });
@@ -3037,13 +3087,13 @@ function kulturRead(ti, scrollTo){
       save(); kulturRead(ti, ci);
     };
   });
-  if(S.amb){ ambStart(); }
+  klangAn();
   if(scrollTo !== null && scrollTo !== undefined){
     const el = document.getElementById("sec"+scrollTo);
     if(el) setTimeout(()=>el.scrollIntoView({block:"start"}), 60);
   }
 }
-function leaveRead(){ ambStop(); }
+function leaveRead(){}
 
 /* ---------- 4b2. HÖRECKE ---------- */
 let PL = { set:null, list:[], i:0, playing:false, step:0 }, plToken = 0;
@@ -3231,6 +3281,137 @@ function uebungResult(){
 }
 
 
+
+/* ---------- WORTGEDÄCHTNIS ----------
+   Jedes Wort hat eine Stufe. Wer es kann, sieht es seltener;
+   wer danebenliegt, sieht es bald wieder. Gemeistert ist ein
+   Wort erst, wenn es an mehreren verschiedenen Tagen saß. */
+const STUFENTAGE = [0, 1, 2, 4, 9, 21];
+const MEISTER_STUFE = 4, MEISTER_TAGE = 3;
+
+function tagPlus(tag, n){
+  const d = new Date(tag + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+
+function wortAntwort(tr, richtig){
+  if(!tr) return;
+  if(!S.w) S.w = {};
+  const t = todayStr();
+  const r = S.w[tr] || { b:0, due:t, dz:0, ld:null, f:0 };
+  if(richtig){
+    r.b = Math.min(STUFENTAGE.length - 1, (r.b || 0) + 1);
+    if(r.ld !== t){ r.dz = (r.dz || 0) + 1; r.ld = t; }
+  } else {
+    /* Danebengelegen heißt: heute wieder dran, nicht in ein paar Tagen. */
+    r.b = 0;
+    r.f = (r.f || 0) + 1;
+  }
+  r.due = tagPlus(t, STUFENTAGE[r.b]);
+  S.w[tr] = r;
+}
+
+/* neu, gelernt, uebung, meister */
+function wortStatus(tr){
+  const r = S.w && S.w[tr];
+  if(!r) return "neu";
+  if(r.b >= MEISTER_STUFE && (r.dz || 0) >= MEISTER_TAGE) return "meister";
+  if(r.b === 0 || (r.due && r.due <= todayStr())) return "uebung";
+  return "gelernt";
+}
+
+function wortZahlen(){
+  const z = { neu:0, gelernt:0, uebung:0, meister:0 };
+  const alle = alleWoerter();
+  for(const tr of alle) z[wortStatus(tr)]++;
+  return z;
+}
+
+/* Alle Wörter, die in Lektionen abgefragt werden, mit einer Aufgabe dazu */
+let _idx = null;
+function wortIndex(){
+  if(_idx) return _idx;
+  _idx = new Map();
+  for(const l of FLAT){
+    for(const it of l.items){
+      if(it.k === "choice" || it.k === "listen"){
+        if(it.tr && !_idx.has(it.tr)) _idx.set(it.tr, it);
+      } else if(it.k === "match" && it.pairs){
+        for(const pr of it.pairs){
+          if(pr[0] && !_idx.has(pr[0])) _idx.set(pr[0], it);
+        }
+      }
+    }
+  }
+  return _idx;
+}
+const alleWoerter = () => [...wortIndex().keys()];
+
+/* Was heute dran ist: zuerst die Fehler, dann das Fällige */
+function faellige(max){
+  const t = todayStr(), out = [];
+  const ix = wortIndex();
+  for(const [tr, r] of Object.entries(S.w || {})){
+    if(!ix.has(tr)) continue;
+    if(r.due && r.due <= t) out.push({ tr, b: r.b || 0, f: r.f || 0, due: r.due });
+  }
+  out.sort((a, b2) => (a.b - b2.b) || (b2.f - a.f) || (a.due < b2.due ? -1 : 1));
+  return max ? out.slice(0, max) : out;
+}
+
+const WDH_N = 12;
+function startWdh(){
+  clearAdv();
+  const ix = wortIndex();
+  const woerter = faellige(WDH_N);
+  if(!woerter.length){ home(); return; }
+  const items = [];
+  for(const w of woerter){
+    const it = ix.get(w.tr);
+    if(it && it.k !== "match") items.push(it);
+    else if(it) items.push(it);
+  }
+  if(!items.length){ home(); return; }
+  items.forEach(it=>{ delete it._played; });
+  L = { idx:-1, wdh:true, items: shuffle(items), pos:0, right:0, wrong:0,
+        title:"Wiederholen", state:"ask", picked:null, built:[], matched:[],
+        msel:null, falsch:[], score:0, t0:Date.now() };
+  render();
+}
+
+function wdhResult(){
+  const n = L.items.length, gained = L.score * 10;
+  addXp(gained); save(); sfx("done");
+  const rest = faellige().length;
+  const alle = L.score === n;
+  app.innerHTML = `<div class="result${alle ? " jubel" : ""}">
+    ${mascot("happy")}
+    <div class="bigword" style="color:var(--green);text-shadow:none">${L.score} von ${n}</div>
+    <p>Wiederholt</p>
+    <div class="scores">
+      <div class="score gold"><div class="ic">${svgIcon("tea")}</div><div class="v" id="cnt">+0</div><div class="k">Çay</div></div>
+      <div class="score blue"><div class="ic">${svgIcon("clock")}</div><div class="v">${fmtTime(L.t0)}</div><div class="k">Zeit</div></div>
+    </div>
+    <p style="margin-top:20px">${rest
+      ? "Es warten noch " + rest + " Wörter. Du musst sie nicht heute alle machen."
+      : "Für heute ist nichts mehr fällig. Was du eben konntest, kommt in ein paar Tagen wieder."}</p>
+  </div>
+  <div class="foot">
+    <button class="cta red" id="cont">Zur Übersicht</button>
+    ${(L.falsch && L.falsch.length) ? `<button class="cta ghost" id="fehler">Die ${L.falsch.length} Fehler gleich noch einmal</button>` : ""}
+    ${rest ? `<button class="cta ghost" id="mehr">Weiter wiederholen</button>` : ""}
+  </div>`;
+  const fl = (L.falsch || []).slice();
+  document.getElementById("cont").onclick = home;
+  const fb = document.getElementById("fehler");
+  if(fb) fb.onclick = () => startFehler(fl, "");
+  const mb = document.getElementById("mehr");
+  if(mb) mb.onclick = startWdh;
+  hochzaehlen("cnt", gained, "+");
+  if(alle) konfetti(false);
+}
+
 function merkeFalsch(it){
   if(!L.falsch) L.falsch = [];
   if(it && L.falsch.indexOf(it) < 0) L.falsch.push(it);
@@ -3344,7 +3525,7 @@ function balken(label, ist, soll, farbe){
 }
 
 function fortschritt(){
-  const w = woerter(), wg = woerterGesamt();
+  const w = woerter(), wg = woerterGesamt(), z = wortZahlen();
   const st = stufeVon(w);
   const naechste = STUFEN[STUFEN.indexOf(st) + 1];
   const spr = S.bonusDone.length * 10;
@@ -3365,6 +3546,14 @@ function fortschritt(){
       <p>${esc(st.k)}</p>
       ${naechste ? `<div class="fsnext">Noch ${naechste.ab - w} Wörter bis <b>${esc(naechste.t)}</b></div>` : ""}
     </div>
+
+    <div class="wst">
+      <div><b style="color:var(--green-dark)">${z.meister}</b><span>Gemeistert</span></div>
+      <div><b style="color:var(--gold)">${z.uebung}</b><span>In Übung</span></div>
+      <div><b style="color:var(--nazar)">${z.gelernt}</b><span>Gelernt</span></div>
+      <div><b style="color:var(--muted)">${z.neu}</b><span>Neu</span></div>
+    </div>
+    <p class="fsnote" style="margin:8px 2px 14px">Gemeistert heißt: an ${MEISTER_TAGE} verschiedenen Tagen richtig erinnert. Fällig heute: ${faellige().length}.</p>
 
     <div class="fscard">
       ${balken("Wörter begegnet", w, wg, "var(--green)")}
@@ -3547,7 +3736,7 @@ function advance(){
   if(!L || !L.items) return;
   const it = L.items[L.pos];
   if(!it) return;
-  if(L.exam || L.ueb || L.fehler){
+  if(L.exam || L.ueb || L.fehler || L.wdh){
     if(it.k === "match"){ if(!L.qWrong) L.score++; }
     else if(L.state === "right") L.score++;
   }
@@ -3591,10 +3780,10 @@ function wire(it){
       const a = L.msel.side==="l" ? L.msel.v : v;
       const bb = L.msel.side==="l" ? v : L.msel.v;
       const hit = it.pairs.some(p=>p[0]===a && p[1]===bb);
-      if(hit){ L.matched.push(a,bb); L.right++; sfx("right"); }
+      if(hit){ L.matched.push(a,bb); L.right++; sfx("right"); wortAntwort(a, true); }
       else {
         L.wrong++; L.qWrong = true; sfx("wrong");
-        merkeFalsch(it);
+        merkeFalsch(it); wortAntwort(a, false);
       }
       L.msel = null; render();
     };
@@ -3607,6 +3796,7 @@ function wire(it){
     else ok = it._opts[L.picked] === it.tr;
     if(ok){
       L.right++; L.state="right"; sfx("right");
+      if(it.k !== "build") wortAntwort(it.tr, true);
       render();
       /* richtig: nach einer kurzen Pause von selbst weiter,
          kein zweiter Tipp nötig */
@@ -3615,6 +3805,7 @@ function wire(it){
     }
     L.wrong++; L.qWrong = true; L.state="wrong"; sfx("wrong");
     merkeFalsch(it);
+    if(it.k !== "build") wortAntwort(it.tr, false);
     render();
   };
 
@@ -3685,6 +3876,7 @@ function hochzaehlen(id, ziel, pre){
 }
 
 function finish(){
+  if(L.wdh) return wdhResult();
   if(L.fehler) return fehlerResult();
   if(L.ueb) return uebungResult();
   if(L.exam) return examResult();
