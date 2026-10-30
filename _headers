@@ -1,0 +1,9 @@
+# Der Browser soll die Seite nicht aus dem Zwischenspeicher nehmen,
+# sondern bei jedem Aufruf nachfragen, ob es eine neue Fassung gibt.
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
