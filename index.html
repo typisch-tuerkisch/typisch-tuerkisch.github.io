@@ -51,7 +51,7 @@
   .stat .ic{font-size:18px;line-height:1}
   .stat.fire{color:var(--gold)}
   .stat.gem{color:var(--nazar)}
-  .stat.heart{color:var(--red)}
+  .stat.word{color:var(--green)}
   .topbar .spacer{flex:1}
 
   /* ---------- home ---------- */
@@ -1957,7 +1957,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,hearts:5,heartDay:todayStr(),
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -2030,7 +2030,6 @@ loadAll();
 
 function rollDay(){
   const t = todayStr();
-  if(S.heartDay !== t){ S.hearts = 5; S.heartDay = t; }
   if(S.lastDay !== t){ S.dayXp = 0; }
   // Streak bricht, wenn ein ganzer Tag ohne XP liegt
   if(S.lastDay){
@@ -2147,6 +2146,22 @@ function ornament(col){
     <circle cx="44" cy="9" r="2"/><circle cx="76" cy="9" r="2"/>
   </svg>`;
 }
+/* Zahl der verschiedenen Wörter aus den fertigen Lektionen.
+   Wird selten gebraucht, deshalb einmal je Startseite gerechnet. */
+let _wCache = null, _wStand = "";
+function woerter(){
+  const schluessel = (ACTIVE || "") + ":" + S.done.length;
+  if(_wStand === schluessel && _wCache !== null) return _wCache;
+  const set = new Set();
+  for(const i of S.done){
+    const l = FLAT[i];
+    if(!l || !l.items) continue;
+    for(const it of l.items) if(it && it.tr) set.add(it.tr);
+  }
+  _wCache = set.size; _wStand = schluessel;
+  return _wCache;
+}
+
 function svgIcon(name, cls){
   const d = ICON[name] || ICON.wave;
   return `<svg class="ic-svg ${cls||""}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -2357,7 +2372,7 @@ function topbar(){
     <div class="stat fire">${svgIcon("fire")}${S.streak}</div>
     <div class="stat gem">${svgIcon("tea")}${S.xp}</div>
     <div class="spacer"></div>
-    <div class="stat heart">${svgIcon("simit")}${S.hearts}</div>
+    <div class="stat word">${svgIcon("book")}${woerter()}</div>
   </div>`;
 }
 
@@ -2481,8 +2496,8 @@ function profileSheet(){
 const TOUR = [
   { ic:"route", c:"#fc4847", t:"So läuft es ab",
     x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
-  { ic:"tea", c:"#2f7fd4", t:"Çay und Simit",
-    x:"Für richtige Antworten sammelst du Çay. Jeder Fehler kostet ein Simit, davon hast du fünf am Tag. Am nächsten Morgen liegen wieder fünf im Korb." },
+  { ic:"tea", c:"#2f7fd4", t:"Çay und Wörter",
+    x:"Für richtige Antworten sammelst du Çay. Oben siehst du außerdem, wie viele verschiedene Wörter dir schon begegnet sind. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
   { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
     x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
   { ic:"phones", c:"#c9931f", t:"Die Hörecke",
@@ -3051,23 +3066,11 @@ function boot(){
 let L = null;
 
 function startLesson(idx){
-  if(S.hearts <= 0){ noHearts(); return; }
   clearAdv();
   const les = FLAT[idx];
   les.items.forEach(it => { delete it._played; });
   L = { idx, items: les.items.slice(), pos:0, right:0, wrong:0, title:les.t, state:"ask", picked:null, built:[], matched:[], msel:null, t0:Date.now() };
   render();
-}
-
-function noHearts(){
-  app.innerHTML = topbar() + `<div class="result">
-    <div class="emo">${svgIcon("simit")}</div>
-    <h2>Simit alle</h2>
-    <p>Jeder Fehler kostet ein Simit. Morgen liegen wieder fünf im Korb. Im Abschlusstest kostet dich ein Fehler übrigens keins.</p>
-  </div>
-  <div class="foot"><button class="cta red" id="back">Zur Übersicht</button></div>`;
-  document.getElementById("back").onclick = home;
-  document.getElementById("chip").onclick = profileSheet;
 }
 
 function render(){
@@ -3182,7 +3185,6 @@ function render(){
   app.innerHTML = `<div class="lessbar">
       <button class="x" id="quit">✕</button>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <div class="stat heart">${svgIcon("simit")}${S.hearts}</div>
     </div>` + body + foot;
 
   wire(it);
@@ -3199,7 +3201,7 @@ function advance(){
   if(L.exam){
     if(it.k === "match"){ if(!L.qWrong) L.score++; }
     else if(L.state === "right") L.score++;
-  } else if(S.hearts <= 0){ noHearts(); return; }
+  }
   L.pos++; L.state="ask"; L.picked=null; L.built=[]; L.matched=[]; L.msel=null; L.qWrong=false;
   if(L.pos >= L.items.length) finish(); else render();
 }
@@ -3243,7 +3245,6 @@ function wire(it){
       if(hit){ L.matched.push(a,bb); L.right++; sfx("right"); }
       else {
         L.wrong++; L.qWrong = true; sfx("wrong");
-        if(!L.exam){ S.hearts = Math.max(0,S.hearts-1); save(); }
       }
       L.msel = null; render();
     };
@@ -3263,7 +3264,6 @@ function wire(it){
       return;
     }
     L.wrong++; L.qWrong = true; L.state="wrong"; sfx("wrong");
-    if(!L.exam){ S.hearts = Math.max(0,S.hearts-1); save(); }
     render();
   };
 
@@ -3387,7 +3387,7 @@ function examResult(){
     </div>
     <p style="margin-top:20px">${ok
       ? (first && nextUnit ? "Einheit "+(ui+2)+" ist jetzt offen: "+esc(nextUnit.t) : "Du kannst jederzeit weiterüben.")
-      : "Geh die Lektionen dieser Einheit noch einmal durch und versuch es dann erneut. Im Test kostet dich ein Fehler kein Simit."}</p>
+      : "Geh die Lektionen dieser Einheit noch einmal durch und versuch es dann erneut, so oft du willst."}</p>
   </div>
   <div class="foot">
     <button class="cta ${ok?"":"red"}" id="cont">${ok?"Weiter":"Zur Übersicht"}</button>
