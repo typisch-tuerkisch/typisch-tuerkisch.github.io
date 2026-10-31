@@ -593,7 +593,9 @@
   .err{color:var(--red);font-size:13.5px;font-weight:700;margin:2px 0 10px;min-height:18px}
   .auth .cta{margin-top:6px}
   .switchline{text-align:center;margin-top:18px;font-size:14px;color:var(--muted);font-weight:700}
-  .switchline button{background:none;color:var(--nazar);font-size:14px;font-weight:800;padding:4px}
+  /* Die Tippfläche war nur 27 Pixel hoch und damit zu klein für einen Daumen. */
+  .switchline button{background:none;color:var(--nazar);font-size:14px;font-weight:800;
+    padding:11px 10px;min-height:44px;line-height:1.2}
   .known{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
   .known button{
     display:flex;align-items:center;gap:12px;width:100%;text-align:left;
@@ -621,6 +623,12 @@
        rutschen die unteren Zeilen aus dem Bild und sind nicht erreichbar. */
     max-height:88vh;max-height:88dvh;overflow-y:auto;
     overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  }
+  /* Das Blatt ist lang. Schließen soll man immer erreichen,
+     ohne erst bis ganz nach unten zu wischen. */
+  .sheet .inner > .cta.ghost:last-child{
+    position:sticky;bottom:0;margin-bottom:0;
+    background:var(--surface);box-shadow:0 -10px 14px var(--surface);
   }
   .sheet h3{margin:0 0 3px;font-size:18px;font-weight:900}
   .sheet .who{color:var(--muted);font-size:13.5px;font-weight:700;margin:0 0 16px}
@@ -694,7 +702,7 @@ const UNITS = [
       { t:"Am Tisch", s:"6 Übungen", items:[
         {k:"culture", word:"Eline sağlık", lit:"wörtlich: Gesundheit deiner Hand",
           text:"Das sagt man zu der Person, die gekocht hat. Nicht „es war lecker\", sondern ein Dank an die Hände, die es gemacht haben.",
-          tip:"Die Antwort darauf ist meistens <b>Afiyet olsun</b>. Ja, dasselbe wie „guten Appetit\" - es wird vor und nach dem Essen benutzt."},
+          tip:"Die Antwort darauf ist meistens <b>Afiyet olsun</b>. Ja, dasselbe wie „guten Appetit\", es wird vor und nach dem Essen benutzt."},
         {k:"choice", de:"Die Mutter deines Freundes hat gekocht. Du sagst:", tr:"Eline sağlık", opts:["Eline sağlık","Afiyet olsun","Doydum","Çok pahalı"],
           why:"Eline sağlık geht an die Person, die gekocht hat. Afiyet olsun sagt sie dann zu dir zurück."},
         {k:"choice", de:"Ich bin satt", tr:"Doydum", opts:["Doydum","Çok lezzetli","Buyurun","Aç değilim"]},
@@ -873,7 +881,7 @@ const UNITS = [
           tip:"Es kommt fast immer besser an als ein Kompliment über das Äußere, besonders bei jemandem, den du kaum kennst."},
         {k:"choice", de:"Es steht dir gut", tr:"Yakışmış", opts:["Yakışmış","Yakışıklı","Yakışır","Yakıştı mı"]},
         {k:"choice", de:"Schön, dass es dich gibt", tr:"İyi ki varsın", opts:["İyi ki varsın","İyi ki geldin","İyi ki oldu","İyi ki biliyorsun"]},
-        {k:"culture", word:"Was nicht geht", lit:"laf atmak",
+        {k:"culture", word:"Laf atmak", lit:"Worte hinterherwerfen",
           text:"Einer fremden Frau auf der Straße hinterherzurufen heißt <b>laf atmak</b> und gilt als Belästigung, nicht als Kompliment. Auch gut gemeinte Bemerkungen über den Körper sind unter Fremden daneben.",
           tip:"Die sichere Regel: lobe, was jemand gemacht hat, nicht wie jemand aussieht, solange ihr euch nicht gut kennt."},
         {k:"build", de:"Gesundheit deiner Mühe", tiles:["Emeğine","sağlık"], ans:"Emeğine sağlık"},
@@ -885,8 +893,8 @@ const UNITS = [
           tip:"Wer canım zu einer Fremden sagt, wirkt aufdringlich. Wer aşkım zur Nachbarin sagt, sorgt für Gerede."},
         {k:"choice", de:"meine Schöne", tr:"güzelim", opts:["güzelim","tatlım","çiçeğim","gülüm"]},
         {k:"choice", de:"mein Einziger oder meine Einzige", tr:"birtanem", opts:["birtanem","hayatım","meleğim","prensesim"]},
-        {k:"culture", word:"Karıcığım", lit:"mein liebes Frauchen",
-          text:"Die Verkleinerung mit <b>-cığım</b> macht aus jedem Wort einen Kosenamen: karıcığım, annecığım, ablacığım. Sie trägt Wärme, keine Herablassung.",
+        {k:"culture", word:"Karıcığım", lit:"meine liebe Frau, zärtlich verkleinert",
+          text:"Die Verkleinerung mit <b>-cığım</b> macht aus jedem Wort einen Kosenamen: karıcığım, anneciğim, ablacığım. Sie trägt Wärme, keine Herablassung.",
           tip:"Ehemänner sagen oft einfach <b>hanım</b> oder rufen ihre Frau mit dem Namen des ersten Kindes."},
         {k:"match", pairs:[["çiçeğim","meine Blume"],["gülüm","meine Rose"],["meleğim","mein Engel"],["bebeğim","mein Baby"]]},
         {k:"listen", tr:"Sevgili karım", de:"meine geliebte Ehefrau", opts:["meine geliebte Ehefrau","meine liebe Schwester","meine gute Freundin","meine liebe Mutter"]}
@@ -921,7 +929,7 @@ const UNITS = [
         {k:"listen", tr:"Eline sağlık usta", de:"Respekt für deine Arbeit, Meister", opts:["Respekt für deine Arbeit, Meister","Guten Appetit","Gute Reise","Danke für alles"]}
       ]},
       { t:"Kosenamen für ihn", s:"6 Übungen", items:[
-        {k:"culture", word:"Kocacığım", lit:"mein liebes Männchen",
+        {k:"culture", word:"Kocacığım", lit:"mein lieber Mann, zärtlich verkleinert",
           text:"Dieselbe Verkleinerung wie bei den Frauen: <b>-cığım</b> macht aus kocam ein zärtliches kocacığım. Dazu kommen <b>erkeğim</b>, mein Kerl, und <b>adamım</b>.",
           tip:"<b>Adamım</b> heißt wörtlich mein Mann, gemeint ist aber eher mein Fels, auf den ich mich verlassen kann."},
         {k:"choice", de:"mein Löwe", tr:"aslanım", opts:["aslanım","koçum","paşam","beyim"]},
@@ -967,7 +975,7 @@ const UNITS = [
     t:"In der Türkei sagen wir nicht", s:"Was wir stattdessen sagen", ic:"flame", c:"#e2365a", pro:true, pool:15,
     lessons:[
       { t:"Statt wow", s:"6 Übungen", items:[
-        {k:"culture", word:"Nicht einfach super", lit:"harika ya",
+        {k:"culture", word:"Harika ya", lit:"ist ja wunderbar",
           text:"Für Begeisterung gibt es im Türkischen ein ganzes Lager voll Wörter, und sie sind alle größer als nötig: <b>bomba gibi</b>, <b>efsane</b>, <b>müthiş</b>, <b>şahane</b>.",
           tip:"Untertreibung gilt nicht als bescheiden, sondern als lustlos. Wenn das Essen gut war, sagt man nicht, es war in Ordnung."},
         {k:"choice", de:"bombastisch", tr:"bomba gibi", opts:["bomba gibi","boş ver","boşuna","bol bol"]},
@@ -992,9 +1000,9 @@ const UNITS = [
       ]},
       { t:"Niemand sagt das schlicht", s:"7 Übungen", items:[
         {k:"culture", word:"Kafayı yedim", lit:"ich habe den Kopf gegessen",
-          text:"Niemand sagt <b>çok sinirlendim</b>, ich bin sehr wütend. Man sagt <b>kafayı yedim</b> oder <b>tepem attı</b>, mir ist der Deckel hochgegangen.",
+          text:"Für Wut sagt man selten <b>çok sinirlendim</b>, obwohl das richtig ist. Gesagt wird <b>tepem attı</b>, mir ist der Deckel hochgegangen. <b>Kafayı yedim</b> bedeutet etwas anderes, nämlich ich dreh durch.",
           tip:"Die schlichte Form ist nicht falsch, sie klingt nur wie aus dem Lehrbuch. Wer so redet, wird sofort als Lernender erkannt."},
-        {k:"choice", de:"ich bin sehr wütend", tr:"kafayı yedim", opts:["kafayı yedim","içim şişti","canım çıktı","ödüm koptu"]},
+        {k:"choice", de:"mir ist der Kragen geplatzt", tr:"tepem attı", opts:["tepem attı","içim şişti","canım çıktı","ödüm koptu"]},
         {k:"choice", de:"ich bin sehr glücklich", tr:"içim içime sığmıyor", opts:["içim içime sığmıyor","içim şişti","içim daraldı","içim rahat"]},
         {k:"choice", de:"mir ist furchtbar langweilig", tr:"içim şişti", opts:["içim şişti","içim içime sığmıyor","canım çekti","kanım kaynadı"]},
         {k:"culture", word:"Sarmak", lit:"einwickeln",
@@ -1039,7 +1047,7 @@ const UNITS = [
       { t:"Hasret und Özlem", s:"6 Übungen", items:[
         {k:"culture", word:"Gönül", lit:"das Herz als Ort des Fühlens",
           text:"Türkisch hat zwei Herzen. <b>Kalp</b> ist das Organ, das schlägt. <b>Gönül</b> ist das, was liebt, verzeiht und leidet.",
-          tip:"Darum heißt es gönülden, von Herzen, und nie kalpten."},
+          tip:"Gefühle laufen über gönül, darum gönülden, von Herzen. Kalpten gibt es auch, es klingt nur nüchterner."},
         {k:"culture", word:"Hasret", lit:"Sehnsucht, die wehtut",
           text:"Nicht die leichte Sehnsucht nach Urlaub. Hasret ist die nach einem Menschen oder einem Ort, zu dem man nicht zurückkann.",
           tip:"Für Generationen von Türken in Deutschland ist das kein poetisches Wort, sondern eine Beschreibung ihres Lebens."},
@@ -1119,9 +1127,9 @@ const UNITS = [
       { t:"Taxi und Hotel", s:"6 Übungen", items:[
         {k:"choice", de:"Zum Flughafen bitte", tr:"Havalimanına lütfen", opts:["Havalimanına lütfen","Otele lütfen","Hesap lütfen","Buraya lütfen"]},
         {k:"culture", word:"Taksimetre", lit:"das Taxameter",
-          text:"Der wichtigste Satz im Taxi: <b>Taksimetre açar mısınız?</b>, schalten Sie bitte den Taxameter ein.",
+          text:"Der wichtigste Satz im Taxi: <b>Taksimetre açar mısınız?</b>, schalten Sie bitte das Taxameter ein.",
           tip:"Freundlich gefragt, gleich beim Einsteigen. Danach ist das Thema erledigt und niemand ist beleidigt."},
-        {k:"build", de:"Schalten Sie bitte den Taxameter ein", tiles:["Taksimetre","açar","mısınız"], ans:"Taksimetre açar mısınız"},
+        {k:"build", de:"Schalten Sie bitte das Taxameter ein", tiles:["Taksimetre","açar","mısınız"], ans:"Taksimetre açar mısınız"},
         {k:"match", pairs:[["oda","Zimmer"],["anahtar","Schlüssel"],["bavul","Koffer"],["kat","Etage"]]},
         {k:"choice", de:"Können Sie mir helfen?", tr:"Yardım edebilir misiniz?", opts:["Yardım edebilir misiniz?","Gelebilir misiniz?","Anlıyor musunuz?","Biliyor musunuz?"]},
         {k:"listen", tr:"Rezervasyonum var", de:"Ich habe eine Reservierung", opts:["Ich habe eine Reservierung","Ich habe kein Zimmer","Ich möchte zahlen","Ich bleibe zwei Nächte"]}
@@ -1148,7 +1156,7 @@ const UNITS = [
           text:"Am 29. Oktober 1923 wurde die Republik ausgerufen. <b>Cumhuriyet Bayramı</b> ist der wichtigste staatliche Feiertag, mit Fahnen an jedem Fenster und abends Feuerwerk.",
           tip:"Der 23. April gehört den Kindern, der 19. Mai der Jugend, der 30. August dem Sieg. Vier Daten, die jedes Schulkind auswendig kann."},
         {k:"match", pairs:[["bayrak","Fahne"],["tören","Zeremonie"],["havai fişek","Feuerwerk"],["resmi tatil","gesetzlicher Feiertag"]]},
-        {k:"choice", de:"Tag der Republik", tr:"Cumhuriyet Bayramı", opts:["Cumhuriyet Bayramı","Zafer Bayramı","Çocuk Bayramı","Gençlik Bayramı"]},
+        {k:"choice", de:"Fest der Republik", tr:"Cumhuriyet Bayramı", opts:["Cumhuriyet Bayramı","Zafer Bayramı","Çocuk Bayramı","Gençlik Bayramı"]},
         {k:"culture", word:"Nevruz ve Hıdrellez", lit:"Nevruz und Hıdrellez",
           text:"Zwei Frühlingsfeste, die älter sind als jede Staatsgründung. Zu <b>Nevruz</b> am 21. März springt man über ein Feuer, zu <b>Hıdrellez</b> in der Nacht auf den 6. Mai schreibt man einen Wunsch auf und hängt ihn an einen Rosenstrauch.",
           tip:"Beide werden regional sehr unterschiedlich gefeiert, in manchen Gegenden gar nicht."},
@@ -1290,7 +1298,7 @@ const BONUS = [
 const KULTUR = [
   { t:"Sprache und Schrift", ic:"book", c:"#5566d8", cards:[
     {h:"Die ältesten bekannten Texte", sq:{f:"Du stehst vor einer Steinstele in der Mongolei. Was steht dort zum ersten Mal?",o:["Das Wort Türk als Name eines Volkes über sich selbst", "Ein Gebet auf Arabisch", "Ein Vertrag mit Byzanz"],r:0,w:"Auf den Orhun-Steinen nennt sich ein Volk zum ersten Mal selbst Türk."}, q:"Wo wurde das Wort Türk zum ersten Mal geschrieben?", tr:"Orhun Yazıtları",
-     x:"Im 8. Jahrhundert ließen türkische Herrscher im heutigen Mongolei Steinstelen aufstellen, für Kültigin, Bilge Kağan und den Ratgeber Tonyukuk. Sie sind die ältesten bekannten längeren Texte in einer Türksprache.",
+     x:"Im 8. Jahrhundert ließen türkische Herrscher in der heutigen Mongolei Steinstelen aufstellen, für Kültigin, Bilge Kağan und den Ratgeber Tonyukuk. Sie sind die ältesten bekannten längeren Texte in einer Türksprache.",
      tip:"Auf ihnen steht das Wort Türk zum ersten Mal geschrieben, als Name eines Volkes über sich selbst."},
     {h:"Ein Buch über das gute Leben", sq:{f:"Der Titel heißt ungefähr Wissen, das glücklich macht. Worum geht es?",o:["Wie ein Herrscher und ein Mensch gerecht leben", "Wie man Handel treibt", "Wie man Pferde züchtet"],r:0,w:"Vier Figuren stehen für Gerechtigkeit, Glück, Verstand und Genügsamkeit."}, q:"Was bedeutet der Titel Kutadgu Bilig?", dh:["bilig","bilgi","Wissen"], tr:"Kutadgu Bilig",
      x:"Um 1070 schrieb Yusuf Has Hacib ein langes Versgedicht darüber, wie ein Herrscher und ein Mensch gerecht leben sollen. Vier Figuren stehen darin für Gerechtigkeit, Glück, Verstand und Genügsamkeit.",
@@ -1365,7 +1373,7 @@ const KULTUR = [
   ]},
   { t:"Küche und Tisch", ic:"tea", c:"#e08a2e", cards:[
     {h:"Çay", sq:{f:"Wie wird türkischer Tee gekocht?",o:["In zwei gestapelten Kannen", "In einer Kaffeemaschine", "Im Samowar mit Zitrone"],r:0,w:"Unten Wasser, oben starker Tee. Gemischt wird erst im Glas."}, q:"Warum hat das türkische Teeglas eine Taille?", tr:"İnce belli bardak",
-     x:"Schwarzer Tee aus der Schwarzmeerregion, aufgebrüht in zwei gestapelten Kannen, serviert im tailliertem Glas. Im Basar wird er auf Tabletts durch die Gassen getragen.",
+     x:"Schwarzer Tee aus der Schwarzmeerregion, aufgebrüht in zwei gestapelten Kannen, serviert im taillierten Glas. Im Basar wird er auf Tabletts durch die Gassen getragen.",
      tip:"Die Teekultur wurde 2022 gemeinsam mit Aserbaidschan in die UNESCO-Liste des immateriellen Kulturerbes aufgenommen."},
     {h:"Türk kahvesi", sq:{f:"Du bestellst Kaffee und wirst gefragt: sade, orta oder şekerli?",o:["Es geht um den Zucker", "Es geht um die Größe", "Es geht um die Temperatur"],r:0,w:"Sade ohne, orta mittel, şekerli süß. Gezuckert wird beim Kochen, nicht danach."}, q:"Was heißt orta, wenn du Kaffee bestellst?", tr:"Sade, orta, şekerli",
      x:"Fein gemahlener Kaffee wird im Cezve langsam aufgekocht und mit dem Satz serviert, dazu ein Glas Wasser und etwas Süßes. Die Süße wird beim Bestellen festgelegt, nicht danach.",
@@ -1392,7 +1400,7 @@ const KULTUR = [
      tip:"Ebru steht seit 2014 auf der UNESCO-Liste des immateriellen Kulturerbes."},
     {h:"Kuppeln und Portale", sq:{f:"Ein gewaltiges Steinportal mit tiefen Ornamenten. Wessen Handschrift?",o:["Der Seldschuken", "Der Osmanen", "Der Byzantiner"],r:0,w:"Die Osmanen setzten dagegen auf weite Kuppeln."}, q:"Woran erkennst du seldschukische und osmanische Bauten?", tr:"Mimari",
      x:"Die Seldschuken bauten gewaltige Steinportale mit tiefen Ornamenten. Die Osmanen setzten auf weite Kuppeln und ganze Anlagen mit Moschee, Schule, Küche und Bad.",
-     tip:"Mimar Sinan baute im 16. Jahrhundert hunderte Bauwerke. Die Selimiye in Edirne hielt er selbst für sein Meisterstück."},
+     tip:"Mimar Sinan baute im 16. Jahrhundert Hunderte Bauwerke. Die Selimiye in Edirne hielt er selbst für sein Meisterstück."},
     {h:"Ringen in Olivenöl", sq:{f:"Beim Kırkpınar in Edirne ringen Männer eingeölt. Seit wann gibt es das Fest?",o:["Seit dem 14. Jahrhundert", "Seit 1950", "Seit der Republik"],r:0,w:"Eines der ältesten Sportfeste, die bis heute gefeiert werden."}, q:"Warum reiben sich Ringer in Edirne mit Olivenöl ein?", tr:"Yağlı güreş",
      x:"Beim Kırkpınar in Edirne ringen Männer in Lederhosen und mit Olivenöl eingerieben. Das Fest findet seit dem 14. Jahrhundert statt.",
      tip:"Es steht seit 2010 auf der UNESCO-Liste und gilt als eines der ältesten durchgehend gefeierten Sportfeste der Welt."}
@@ -1496,7 +1504,7 @@ const KULTUR = [
   ]},
   { t:"Orte", ic:"balloon", c:"#d94f90", cards:[
     {h:"Kapadokya", sq:{f:"Wie sind die Feenkamine entstanden?",o:["Wind und Wasser haben weiches Tuffgestein geformt", "Menschen haben sie aufgeschichtet", "Ein Vulkan hat sie ausgeworfen"],r:0,w:"In das weiche Gestein wurden später Kirchen und ganze unterirdische Städte gegraben."}, q:"Wie entstehen Feenkamine?", tr:"Peri bacaları",
-     x:"Weiches Tuffgestein, aus dem Wind und Wasser Kegel geformt haben, dazu Höhlenkirchen und unterirdische Städte. Morgens steigen hunderte Ballons auf.",
+     x:"Weiches Tuffgestein, aus dem Wind und Wasser Kegel geformt haben, dazu Höhlenkirchen und unterirdische Städte. Morgens steigen Hunderte Ballons auf.",
      tip:"Der Nationalpark Göreme steht seit 1985 auf der UNESCO-Welterbeliste."},
     {h:"Pamukkale", sq:{f:"Warum sind die Terrassen von Pamukkale weiß?",o:["Kalk aus dem Thermalwasser", "Schnee", "Weißer Marmor"],r:0,w:"Über Jahrtausende abgelagert. Oben liegt das antike Hierapolis."}, q:"Warum ist Pamukkale weiß?", tr:"Travertenler",
      x:"Kalkhaltiges Thermalwasser hat über Jahrtausende weiße Terrassen gebildet. Oben liegen die Ruinen der antiken Stadt Hierapolis.",
@@ -1567,7 +1575,7 @@ const POOL = [
     ["anlamadım","Ich habe nicht verstanden"],["anlıyorum","Ich verstehe"],["bilmiyorum","Ich weiß nicht"],
     ["yavaş","langsam"],["tekrar","noch einmal"],
     ["ben","ich"],["sen","du"],["o","er, sie, es"],["biz","wir"],["siz","ihr, Sie"],["onlar","sie (Mehrzahl)"],
-    ["anne","Mutter"],["baba","Vater"],["kardeş","Geschwisterkind"],["abi","großer Bruder"],
+    ["anne","Mutter"],["baba","Vater"],["kardeş","Geschwister"],["abi","großer Bruder"],
     ["abla","große Schwester"],["oğul","Sohn"],["kız","Tochter, Mädchen"],["eş","Ehepartner"],
     ["arkadaş","Freund"],["komşu","Nachbar"],["aile","Familie"],["çocuk","Kind"],
     ["kadın","Frau"],["adam","Mann"],["insan","Mensch"],["isim","Name"],["yaş","Alter"],
@@ -1595,7 +1603,7 @@ const POOL = [
   /* 2 Typisch Türkisch */ [
     ["kolay gelsin","Möge die Arbeit leicht fallen"],["afiyet olsun","Guten Appetit"],
     ["eline sağlık","Gesundheit deiner Hand"],["geçmiş olsun","Gute Besserung"],
-    ["başın sağ olsun","Mein Beileid"],["sıhhatler olsun","Wohl bekomme das Bad"],
+    ["başın sağ olsun","Mein Beileid"],["sıhhatler olsun","möge es der Gesundheit dienen"],
     ["hayırlı olsun","Möge es Gutes bringen"],["gözün aydın","Schön für dich"],
     ["maşallah","Wie schön, möge nichts es treffen"],["inşallah","Hoffentlich"],
     ["Allah korusun","Gott bewahre"],["çok yaşa","Gesundheit (beim Niesen)"],
@@ -1820,7 +1828,7 @@ const POOL = [
     ["helal","rechtmäßig erworben"],["haram","unrechtmäßig"]
   ],
   /* 6 Unterwegs */ [
-    ["yol","Weg"],["sokak","Straße"],["cadde","Allee"],["meydan","Platz"],["şehir","Stadt"],
+    ["yol","Weg"],["sokak","Straße, Gasse"],["cadde","Hauptstraße"],["meydan","Platz"],["şehir","Stadt"],
     ["köy","Dorf"],["mahalle","Viertel"],["otel","Hotel"],["oda","Zimmer"],["anahtar","Schlüssel"],
     ["bavul","Koffer"],["çanta","Tasche"],["pasaport","Pass"],["bilet","Ticket"],
     ["havalimanı","Flughafen"],["uçak","Flugzeug"],["otobüs","Bus"],["dolmuş","Sammeltaxi"],
@@ -1918,7 +1926,7 @@ const POOL = [
     ["hafta başı","Wochenanfang"],["hafta ortası","Wochenmitte"],["haftaya","nächste Woche als Zeitpunkt"],
     ["dün","gestern"],["bugün","heute"],["yarın","morgen"],["öbür gün","übermorgen"],
     ["evvelsi gün","vorgestern"],["tatil günü","freier Tag"],["iş günü","Arbeitstag"],
-    ["okul günü","Schultag"],["izin","Urlaubstag"],["mesai","Dienstzeit"],
+    ["okul günü","Schultag"],["izin","Urlaubstag"],["mesai","Arbeitszeit"],
     ["toplantı","Besprechung"],["randevu günü","Termintag"],["hangi gün","an welchem Tag"],
     ["hayırlı cumalar","Gesegneten Freitag"],["iyi hafta sonları","Schönes Wochenende"],
     ["gün aşırı","jeden zweiten Tag"],["üç günde bir","alle drei Tage"],
@@ -1993,7 +2001,7 @@ const POOL = [
     ["23 Nisan","Tag der Kinder"],["Çocuk Bayramı","Kinderfest"],["19 Mayıs","Tag der Jugend"],
     ["Gençlik Bayramı","Jugendfest"],["30 Ağustos","Tag des Sieges"],
     ["Zafer Bayramı","Siegesfest"],["29 Ekim","Tag der Republik"],
-    ["Cumhuriyet Bayramı","Tag der Republik Türkei"],["Atatürk","Atatürk"],
+    ["Cumhuriyet Bayramı","Fest der Republik"],["Atatürk","Atatürk"],
     ["bayrak","Fahne"],["tören","Zeremonie"],["geçit töreni","Parade"],
     ["havai fişek","Feuerwerk"],["resmi tatil","gesetzlicher Feiertag"],["tatil","Ferien"],
     ["okul tatili","Schulferien"],["Nevruz","Nevruz, Frühlingsfest"],
@@ -2040,7 +2048,7 @@ const POOL = [
     ["aşkım","mein Schatz"],["birtanem","mein Einziger oder meine Einzige"],["hayatım","mein Leben"],
     ["sevgilim","meine Liebste"],["meleğim","mein Engel"],["güzelim","meine Schöne"],
     ["tatlım","meine Süße"],["prensesim","meine Prinzessin"],["bebeğim","mein Baby"],
-    ["karıcığım","mein liebes Frauchen"],["hanımım","meine Dame"],
+    ["karıcığım","meine liebe Frau, zärtlich verkleinert"],["hanımım","meine Dame"],
     ["kadınım","meine Frau an meiner Seite"],["çiçeğim","meine Blume"],["gülüm","meine Rose"],
     ["sevgili karım","meine geliebte Ehefrau"],["kuzum","mein Lämmchen"]
   ],
@@ -2069,7 +2077,7 @@ const POOL = [
     ["samimi","vertraut"],["sen demek","duzen"],["siz demek","siezen"],
     /* Kosenamen für einen Mann */
     ["aşkım","mein Schatz"],["birtanem","mein Einziger oder meine Einzige"],["hayatım","mein Leben"],
-    ["sevgilim","mein Liebster"],["kocacığım","mein liebes Männchen"],["kocam","mein Ehemann"],
+    ["sevgilim","mein Liebster"],["kocacığım","mein lieber Mann, zärtlich verkleinert"],["kocam","mein Ehemann"],
     ["erkeğim","mein Kerl"],["adamım","mein Fels in der Brandung"],["aslanım","mein Löwe"],
     ["paşam","mein Pascha"],["beyim","mein Herr"],["yakışıklım","mein Hübscher"],
     ["koçum","mein Großer"],["delikanlım","mein junger Mann"],
@@ -2110,7 +2118,7 @@ const POOL = [
     ["aşk olsun","das ist aber nicht nett von dir"],["kusura bakma","nimm es mir nicht übel"],
     ["sağ olasın","sei gesegnet"],["var ol","danke dir, sei lebendig"],
     /* Was man statt der schlichten Variante sagt */
-    ["kafayı yedim","statt: ich bin sehr wütend"],
+    ["kafayı yedim","ich dreh durch"],
     ["tepem attı","statt: mir ist der Kragen geplatzt"],
     ["içim içime sığmıyor","statt: ich bin sehr glücklich"],
     ["içim şişti","statt: mir ist furchtbar langweilig"],
@@ -2140,16 +2148,16 @@ const POOL = [
     ["aşkım","mein Schatz"],["canım","mein Liebes"],["birtanem","mein Einziger oder meine Einzige"],
     ["hayatım","mein Leben"],["sevgilim","mein Liebster oder meine Liebste"],
     ["meleğim","mein Engel"],["ruhum","meine Seele"],["gözüm","mein Auge"],
-    ["ömrüm","mein Lebtag"],["dünyam","meine Welt"],["her şeyim","mein Alles"],
+    ["ömrüm","mein Leben"],["dünyam","meine Welt"],["her şeyim","mein Alles"],
     ["cicim","mein Liebes im Scherz"],["balım","mein Honig"],["şekerim","mein Zucker"],
     ["canımın içi","das Innerste meiner Seele"],["gözümün nuru","das Licht meiner Augen"],
     /* zu einer Frau */
     ["güzelim","meine Schöne"],["tatlım","meine Süße"],["prensesim","meine Prinzessin"],
-    ["bebeğim","mein Baby"],["karıcığım","mein liebes Frauchen"],["hanımım","meine Dame"],
+    ["bebeğim","mein Baby"],["karıcığım","meine liebe Frau, zärtlich verkleinert"],["hanımım","meine Dame"],
     ["kadınım","meine Frau an meiner Seite"],["çiçeğim","meine Blume"],["gülüm","meine Rose"],
-    ["sevgili karım","meine geliebte Ehefrau"],["yavrum","mein Junges"],["kuzum","mein Lämmchen"],
+    ["sevgili karım","meine geliebte Ehefrau"],["yavrum","mein Kleines"],["kuzum","mein Lämmchen"],
     /* zu einem Mann */
-    ["kocacığım","mein liebes Männchen"],["kocam","mein Ehemann"],["erkeğim","mein Kerl"],
+    ["kocacığım","mein lieber Mann, zärtlich verkleinert"],["kocam","mein Ehemann"],["erkeğim","mein Kerl"],
     ["adamım","mein Fels in der Brandung"],["aslanım","mein Löwe"],["paşam","mein Pascha"],
     ["beyim","mein Herr"],["yakışıklım","mein Hübscher"],["koçum","mein Großer"],
     ["delikanlım","mein junger Mann"],["sevgili kocam","mein geliebter Ehemann"],
@@ -2209,7 +2217,11 @@ function genLessons(){
       const neu = pool.slice(n, n+3);
       const seen = pool.slice(0, n);
       const rev = [];
-      for(let i=0; i<3 && seen.length; i++) rev.push(seen[(n*7 + i*17) % seen.length]);
+      /* Früher stand hier (n*7 + i*17) % seen.length. Da seen.length immer
+         gleich n ist, war (n*7) % n stets 0, also kam als Wiederholung immer
+         das erste Wort der Einheit. Die Lektionsnummer streut richtig. */
+      const k = u.lessons.length;
+      for(let i=0; i<3 && seen.length; i++) rev.push(seen[(k*5 + i*7 + 1) % seen.length]);
 
       const pairs = [], usedTr = {}, usedDe = {};
       [...neu, ...rev, ...pool].forEach(w=>{
@@ -2598,6 +2610,8 @@ const ICON = {
   disk:'<path d="M4.8 3.8h11.5l3.1 3.1v13.3H4.8Z"/><path d="M8.2 3.8v5.3h6.4V3.8"/><rect x="7.6" y="13" width="8.8" height="7.2"/>',
   quest:'<circle cx="12" cy="12" r="8.8"/><path d="M9.6 9.5a2.5 2.5 0 0 1 4.9.5c0 1.7-2.5 2-2.5 3.6"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/>',
   exit:'<path d="M14.6 3.8h4.2a1.6 1.6 0 0 1 1.6 1.6v13.2a1.6 1.6 0 0 1-1.6 1.6h-4.2"/><path d="M9.4 15.8 5.6 12l3.8-3.8M5.6 12h9.4"/>',
+  grid: `<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/>
+         <rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>`,
   route:'<circle cx="6.4" cy="6.4" r="2.6"/><circle cx="17.6" cy="17.6" r="2.6"/><path d="M9 6.4h4.6a4 4 0 0 1 0 8H10.4a4 4 0 0 0 0 8H15"/>',
   rain:'<path d="M7.4 15.4a4.4 4.4 0 0 1-.4-8.8 5.6 5.6 0 0 1 10.7 1.3 3.9 3.9 0 0 1-.8 7.5"/><path d="M8.6 18.2l-.9 2.4M12 18.2l-.9 2.4M15.4 18.2l-.9 2.4"/>',
   sea:'<path d="M2.5 10q2.4-3 4.8 0t4.8 0t4.8 0"/><path d="M2.5 15q2.4-3 4.8 0t4.8 0t4.8 0"/>',
@@ -2826,6 +2840,7 @@ function tone(freq, start, dur, vol, type){
    Web Audio, weil iPhones audio.volume schlicht ignorieren. */
 const KLANG_DATEI = { wald: "audio/wald.mp3", musik: "audio/musik.mp3" };
 let KLANG = null, KSRC = null, KGAIN = null, gesteDa = false;
+let klangFrei = false, klangWartet = null;
 
 const klangArt = () => (S.klang == null ? "wald" : S.klang);
 const klangVol = () => Math.min(1, Math.max(0, (S.kVol == null ? 25 : S.kVol) / 100));
@@ -2863,6 +2878,18 @@ function klangAn(){
   if(art === "aus"){ klangAus(); return; }
   const datei = KLANG_DATEI[art];
   if(!datei) return;
+  /* Die Klangdatei ist über zwei Megabyte groß. Wer von Instagram kommt,
+     kurz hineinschaut und wieder geht, soll dafür kein Datenvolumen zahlen.
+     Darum wird sie erst geholt, wenn jemand die App angefasst hat und
+     auch eine Weile geblieben ist. Wer den Klang selbst einschaltet,
+     bekommt ihn sofort. */
+  if(!gesteDa) return;
+  if(!klangFrei){
+    if(!klangWartet){
+      klangWartet = setTimeout(() => { klangWartet = null; klangFrei = true; klangAn(); }, 15000);
+    }
+    return;
+  }
   const el = klangEl();
   if(!el.src || el.src.indexOf(datei) < 0){ el.src = datei; }
   klangKette();
@@ -2873,6 +2900,8 @@ function klangAn(){
 
 function klangWaehle(art){
   S.klang = art; save();
+  klangFrei = true;
+  if(klangWartet){ clearTimeout(klangWartet); klangWartet = null; }
   if(art === "aus") klangAus(); else klangAn();
 }
 
@@ -2913,7 +2942,7 @@ function authScreen(mode){
   const names = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL);
   const isNew = mode === "new" || names.length === 0;
   app.innerHTML = `<div class="auth">
-    <img class="logo big" src="img/logo-512.png" alt="Typisch Türkisch">
+    <img class="logo big" src="img/logo-256.png" alt="Typisch Türkisch">
     <h1 class="brand" style="text-align:center">Typisch <span class="tr">Türkisch</span></h1>
     <p class="lead">${isNew
       ? "Türkisch lernen und verstehen, wie in der Türkei wirklich gelebt wird. Leg ein Profil an, damit dein Fortschritt gespeichert bleibt."
@@ -3064,6 +3093,8 @@ function profileSheet(){
 const TOUR = [
   { ic:"route", c:"#fc4847", t:"So läuft es ab",
     x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
+  { ic:"grid", c:"#1d7fc0", t:"Vier Bereiche oben",
+    x:"Lernen ist der Kurs. Daneben liegen die Kulturecke zum Lesen, Verstehen für die kniffligen Situationen und die Hörecke zum Zuhören. Du kannst jederzeit wechseln." },
   { ic:"tea", c:"#2f7fd4", t:"Çay und Wörter",
     x:"Für richtige Antworten sammelst du Çay. Oben siehst du außerdem, wie viele verschiedene Wörter dir schon begegnet sind. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
   { ic:"book", c:"#2f9e5c", t:"Wörter kommen wieder",
@@ -3077,9 +3108,11 @@ const TOUR = [
   { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
     x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
   { ic:"phones", c:"#c9931f", t:"Die Hörecke",
-    x:"Sprichwörter und Redewendungen, eins nach dem anderen. Erst das Türkische, dann die Bedeutung, dann wann man es wirklich sagt." },
+    x:"Drei Bereiche zum Zuhören. Sprichwörter am Stück, zwanzig Gespräche aus echten Situationen, und eine Runde Heraushören, die sich jeden Tag neu mischt. Das Tempo stellst du selbst ein, langsam bis zügig." },
   { ic:"scroll", c:"#2f9e5c", t:"Merkliste",
     x:"Was dir gefällt, legst du mit einem Tipp ab. Oben rechts findest du alles wieder." },
+  { ic:"disk", c:"#2f7fd4", t:"Auf allen Geräten",
+    x:"Ohne Konto bleibt dein Fortschritt auf diesem Gerät. Legst du eins an, findest du ihn auf jedem Handy wieder, auf dem du dich anmeldest. Du kannst das Konto jederzeit samt allen Daten wieder löschen." },
   { ic:"mic", c:"#b8408a", t:"Türkische Stimme",
     x:"Hat dein Gerät eine türkische Stimme, hörst du die Wörter auch. Hat es keine, bleibt die App still statt falsch zu sprechen. Wie du sie einrichtest, steht in deinem Profil." }
 ];
@@ -4257,14 +4290,14 @@ const DIALOG = [
 { t:"Beim Bakkal", s:"Der Laden an der Ecke", ic:"shop", c:"#2f7fd4",
   o:"Du gehst in den kleinen Laden unten im Haus. Der Bakkal räumt gerade ein Regal ein.",
   z:[
-    {w:"A", tr:"Kolay gelsin.", de:"Gute Arbeit."},
+    {w:"A", tr:"Kolay gelsin.", de:"Möge die Arbeit leicht fallen."},
     {w:"B", tr:"Sağ ol. Buyurun, ne vereyim?", de:"Danke. Bitte, was darf ich dir geben?"},
     {w:"A", tr:"Bir ekmek, bir de yarım kilo domates alayım.", de:"Ich nehme ein Brot und ein halbes Kilo Tomaten."},
     {w:"B", tr:"Domatesler bugün çok güzel, taze geldi.", de:"Die Tomaten sind heute sehr gut, sie sind frisch gekommen."},
     {w:"A", tr:"Ne kadar oldu?", de:"Wie viel macht das?"},
     {w:"B", tr:"Seksen lira.", de:"Achtzig Lira."},
-    {w:"A", tr:"Buyurun. Kolay gelsin, iyi günler.", de:"Bitte sehr. Gute Arbeit, schönen Tag."},
-    {w:"B", tr:"Güle güle, yine bekleriz.", de:"Tschüss, wir warten wieder auf dich."}
+    {w:"A", tr:"Buyurun. Kolay gelsin, iyi günler.", de:"Bitte sehr. Möge die Arbeit leicht fallen, schönen Tag."},
+    {w:"B", tr:"Güle güle, yine bekleriz.", de:"Auf Wiedersehen, kommen Sie gern wieder."}
   ],
   f:[
     {q:"Womit grüßt man jemanden, der gerade arbeitet?", o:["Kolay gelsin","Afiyet olsun","Geçmiş olsun"], r:0,
@@ -4295,7 +4328,7 @@ const DIALOG = [
   ],
   tip:"Gidecektim klingt höflicher als gideceğim. Diese Vergangenheitsform nimmt der Bitte die Schärfe." },
 
-{ t:"Im Çaybahçe", s:"Tee bestellen und sitzen bleiben", ic:"tea", c:"#cf5230",
+{ t:"Im Çay bahçesi", s:"Tee bestellen und sitzen bleiben", ic:"tea", c:"#cf5230",
   o:"Du setzt dich in einen Teegarten am Wasser.",
   z:[
     {w:"B", tr:"Hoş geldiniz, ne alırsınız?", de:"Willkommen, was nehmen Sie?"},
@@ -4325,7 +4358,7 @@ const DIALOG = [
     {w:"B", tr:"Başka bir arzunuz?", de:"Noch einen Wunsch?"},
     {w:"A", tr:"Yok, bu kadar. Hepsi ne kadar?", de:"Nein, das ist alles. Was macht alles zusammen?"},
     {w:"B", tr:"Yetmiş beş olsun, sana yuvarladım.", de:"Sagen wir fünfundsiebzig, ich habe für dich abgerundet."},
-    {w:"A", tr:"Eline sağlık, kolay gelsin.", de:"Danke dir, gute Arbeit."}
+    {w:"A", tr:"Sağ ol, kolay gelsin.", de:"Danke, möge die Arbeit leicht fallen."}
   ],
   f:[
     {q:"Was kostet ein Kilo Erdbeeren?", o:["Vierzig Lira","Fünfundsiebzig Lira","Zwanzig Lira"], r:0,
@@ -4344,7 +4377,7 @@ const DIALOG = [
     {w:"A", tr:"Çay koyayım, buyur otur biraz.", de:"Ich mache Tee, komm, setz dich ein bisschen."},
     {w:"B", tr:"Yok yok, ocakta yemek var, kaçıyorum.", de:"Nein nein, auf dem Herd steht Essen, ich muss weg."},
     {w:"A", tr:"Tabağı sonra getireyim.", de:"Ich bringe den Teller später zurück."},
-    {w:"B", tr:"Acelesi yok, kolay gelsin.", de:"Keine Eile, gute Arbeit."}
+    {w:"B", tr:"Acelesi yok, kolay gelsin.", de:"Keine Eile, möge es dir leicht von der Hand gehen."}
   ],
   f:[
     {q:"Was antwortet die Nachbarin auf das Lob?", o:["Welche Mühe","Ich habe lange gebraucht","Nimm nur wenig"], r:0,
@@ -4522,7 +4555,7 @@ const DIALOG = [
     {w:"A", tr:"Yolu kaybedersem?", de:"Und wenn ich mich verlaufe?"},
     {w:"B", tr:"Oraya varınca camiyi görürsünüz, yanındadır.", de:"Wenn Sie dort ankommen, sehen Sie die Moschee, es ist daneben."},
     {w:"A", tr:"Çok sağ olun.", de:"Vielen Dank."},
-    {w:"B", tr:"Rica ederim, kolay gelsin.", de:"Gern geschehen, viel Erfolg."}
+    {w:"B", tr:"Rica ederim, kolay gelsin.", de:"Gern geschehen, möge es leicht gehen."}
   ],
   f:[
     {q:"Welche Straße soll sie nehmen?", o:["Die zweite rechts","Die erste links","Die dritte rechts"], r:0,
@@ -4634,12 +4667,12 @@ const DIALOG = [
 { t:"Smalltalk im Aufzug", s:"Kurze Sätze, die jeder sagt", ic:"door", c:"#e8a33d",
   o:"Du steigst mit einem Nachbarn in den Aufzug.",
   z:[
-    {w:"A", tr:"Merhaba, kolay gelsin.", de:"Hallo, gute Arbeit."},
-    {w:"B", tr:"Sağ olun. Hava bugün çok sıcak.", de:"Danke. Das Wetter ist heute sehr heiß."},
+    {w:"A", tr:"Merhaba, iyi akşamlar.", de:"Hallo, guten Abend."},
+    {w:"B", tr:"İyi akşamlar. Hava bugün çok sıcak.", de:"Guten Abend. Das Wetter ist heute sehr heiß."},
     {w:"A", tr:"Evet, dayanılmaz.", de:"Ja, unerträglich."},
     {w:"B", tr:"Yeni mi taşındınız?", de:"Sind Sie neu eingezogen?"},
     {w:"A", tr:"Geçen ay taşındık.", de:"Wir sind letzten Monat eingezogen."},
-    {w:"B", tr:"Hayırlı olsun, komşuyuz demek.", de:"Viel Glück damit, wir sind also Nachbarn."},
+    {w:"B", tr:"Hayırlı olsun, komşuyuz demek.", de:"Möge es Gutes bringen, wir sind also Nachbarn."},
     {w:"A", tr:"Öyle görünüyor, iyi günler.", de:"So sieht es aus, schönen Tag."}
   ],
   f:[
