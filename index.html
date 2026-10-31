@@ -598,6 +598,10 @@
     border-top-left-radius:22px;border-top-right-radius:22px;
     padding:20px 20px calc(22px + env(safe-area-inset-bottom));
     border-top:1px solid var(--line);
+    /* Das Blatt ist mit der Zeit laenger geworden. Ohne diese Grenze
+       rutschen die unteren Zeilen aus dem Bild und sind nicht erreichbar. */
+    max-height:88vh;max-height:88dvh;overflow-y:auto;
+    overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   }
   .sheet h3{margin:0 0 3px;font-size:18px;font-weight:900}
   .sheet .who{color:var(--muted);font-size:13.5px;font-weight:700;margin:0 0 16px}
@@ -2222,6 +2226,9 @@ const DAILY_GOAL = 40;
    Solange er leer ist, führt der Button zu Instagram und der Zugang
    wird von Hand per Code vergeben.                                        */
 const PAYWALL_AN = false;   /* auf true stellen, wenn bezahlt werden kann */
+/* Probe: Ohne Profil darf jemand hineinschauen, aber nichts wird gespeichert. */
+const PROBE_SCHL  = "__probe";
+const PROBE_LEKT  = 1;     /* so viele Lektionen sind in der Probe offen */
 const KAUF_LINK = "";
 const INSTA = "https://www.instagram.com/typisch__turkisch/";
 const PREIS_EINMAL = "19,90 €";
@@ -2242,7 +2249,7 @@ const todayStr = () => new Date().toISOString().slice(0,10);
 
 const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},kg:{},kr:{},klang:"wald",kVol:25,sVol:70,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
-                      mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
+                      mark:null, amb:null, openUnits:null, tourSeen:false, nick:null, cv:CONTENT_VERSION});
 
 let USERS = {}, ACTIVE = null, S = fresh();
 
@@ -2379,7 +2386,13 @@ function wortBesser(x, y){
 
 function verschmelzen(lokal, fern){
   if(!fern) return lokal;
-  const m = Object.assign({}, fern, lokal);
+  /* Ein leeres Feld auf diesem Gerät darf einen vorhandenen Wert
+     aus der Wolke nicht überschreiben. Sonst verliert zum Beispiel
+     der Name beim Anmelden auf dem zweiten Gerät seinen Inhalt. */
+  const m = Object.assign({}, fern);
+  Object.keys(lokal).forEach(k => {
+    if(lokal[k] !== null && lokal[k] !== undefined) m[k] = lokal[k];
+  });
   m.done      = vereine(lokal.done, fern.done);
   m.passed    = vereine(lokal.passed, fern.passed);
   m.bonusDone = vereine(lokal.bonusDone, fern.bonusDone);
@@ -2440,28 +2453,37 @@ async function wolkeHolen(){
   }catch(e){ syncStand = "offen"; return false; }
 }
 
-async function kontoVerbinden(u){
+async function kontoVerbinden(u, nick){
   KONTO = u || null;
   if(!u) return;
   const schluessel = "cloud_" + u.uid;
   if(!USERS[schluessel]){
     /* Beim ersten Anmelden nimmt das Konto den Fortschritt mit,
-       der gerade auf diesem Gerät offen war. */
-    USERS[schluessel] = {
-      name: (u.email || "Konto").split("@")[0],
-      pin: "", cloud: u.uid, data: Object.assign({}, S)
-    };
+       der gerade offen war, auch den aus der Probe. */
+    const mit = Object.assign({}, S);
+    if(nick) mit.nick = nick;
+    USERS[schluessel] = { name: nick || "", pin: "", cloud: u.uid, data: mit };
   }
   ACTIVE = schluessel;
   S = Object.assign(fresh(), USERS[schluessel].data);
+  if(nick){ S.nick = nick; USERS[schluessel].name = nick; }
   saveAll();
   await wolkeHolen();
+  /* Die Wolke kann einen aelteren Namen mitbringen. */
+  if(nick && S.nick !== nick){ S.nick = nick; save(); }
+  if(S.nick) USERS[schluessel].name = S.nick;
+  saveAll();
 }
 
 /* Wenn das Netz zurückkommt, nachtragen. */
 try{ window.addEventListener("online", () => { if(KONTO) wolkeSchreiben(); }); }catch(e){}
 
 function saveAll(){
+  /* Die Probe hinterlaesst nichts auf dem Geraet. */
+  if(istProbe()){
+    try{ localStorage.removeItem(AKEY); }catch(e){}
+    return;
+  }
   try{
     if(ACTIVE && USERS[ACTIVE]) USERS[ACTIVE].data = S;
     localStorage.setItem(UKEY, JSON.stringify(USERS));
@@ -2475,7 +2497,10 @@ function fmtTime(t0){
   const s = Math.max(0, Math.round((Date.now() - t0)/1000));
   return Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
 }
-const displayName = () => (ACTIVE && USERS[ACTIVE]) ? USERS[ACTIVE].name : "Gast";
+const istProbe = () => ACTIVE === PROBE_SCHL;
+/* S.nick wandert mit dem Konto auf andere Geraete, USERS[..].name nicht. */
+const displayName = () => istProbe() ? "Gast"
+  : ((S && S.nick) || ((ACTIVE && USERS[ACTIVE]) ? USERS[ACTIVE].name : "Gast"));
 const initial = () => (displayName()[0] || "?").toUpperCase();
 
 loadAll();
@@ -2861,7 +2886,7 @@ function topbar(){
 
 /* ---------- 3b. PROFILE ---------- */
 function authScreen(mode){
-  const names = Object.keys(USERS).filter(k=>k!=="__gast");
+  const names = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL);
   const isNew = mode === "new" || names.length === 0;
   app.innerHTML = `<div class="auth">
     <img class="logo big" src="img/logo-512.png" alt="Typisch Türkisch">
@@ -2888,7 +2913,7 @@ function authScreen(mode){
 
     <div class="switchline" style="margin-top:20px"><button id="kto">Mit Konto anmelden, auf allen Geräten</button></div>
     <div class="switchline" style="margin-top:10px"><button id="rechtlink">Impressum und Datenschutz</button></div>
-    <div class="switchline" style="margin-top:10px"><button id="guest">Ohne Profil weiterlernen</button></div>
+    <div class="switchline" style="margin-top:10px"><button id="guest">Erst einmal ohne Profil hineinschauen</button></div>
   </div>`;
 
   const g = id => document.getElementById(id);
@@ -2905,8 +2930,10 @@ function authScreen(mode){
   if(g("kto")) g("kto").onclick = () => kontoScreen();
   if(g("rechtlink")) g("rechtlink").onclick = () => rechtScreen("impressum");
   if(g("guest")) g("guest").onclick = () => {
-    if(!USERS["__gast"]) USERS["__gast"] = {name:"Gast", pin:"", data:fresh()};
-    ACTIVE = "__gast"; S = USERS[ACTIVE].data; saveAll(); enterApp();
+    /* Probe: nur im Arbeitsspeicher, nichts wird abgelegt. */
+    ACTIVE = PROBE_SCHL; S = fresh(); S.tourSeen = true;
+    try{ localStorage.removeItem(AKEY); }catch(e){}
+    enterApp();
   };
   app.querySelectorAll("[data-pick]").forEach(b=>{
     b.onclick = () => pinScreen(b.dataset.pick);
@@ -2937,9 +2964,9 @@ function pinScreen(key){
 function profileSheet(){
   const el = document.createElement("div");
   el.className = "sheet";
-  const names = Object.keys(USERS).filter(k => k !== ACTIVE && k !== "__gast");
+  const names = Object.keys(USERS).filter(k => k !== ACTIVE && k !== "__gast" && k !== PROBE_SCHL);
   el.innerHTML = `<div class="inner">
-    <h3>${esc(displayName())}</h3>
+    <h3>${istProbe() ? "Ohne Profil" : esc(displayName())}</h3>
     <p class="who">${S.done.length} von ${TOTAL} Lektionen, ${S.xp} Çay, ${tage(S.streak)} Serie</p>
     ${names.map(k=>`<button class="row" data-sw="${esc(k)}">
         <span class="ava sm">${esc((USERS[k].name[0]||"?").toUpperCase())}</span>
@@ -2954,17 +2981,20 @@ function profileSheet(){
       <input type="range" id="sVol" min="0" max="100" step="5" value="${S.sVol==null?70:S.sVol}" ${S.sound?"":"disabled"} aria-label="Lautstärke der Töne">
     </div>
     <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?svgIcon("mic","mini"):svgIcon("mute","mini")}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
-    <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>
+    ${istProbe() ? "" : `<button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>`}
     <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
     <button class="row" id="konto"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>${KONTO ? "Konto: " + esc(KONTO.email || "") : "Konto, auf allen Geräten"}</span></button>
     <button class="row" id="merk"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Merkliste, ${S.saved.length}</span></button>
+    ${istProbe() ? "" : `<button class="row" id="umben"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("mic","mini")}</span><span>Namen ändern</span></button>`}
     <button class="row" id="recht"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Impressum, Datenschutz, Widerruf</span></button>
     <button class="row" id="tour"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("route","mini")}</span><span>Rundgang noch einmal ansehen</span></button>
     <button class="row" data-sw="__new__"><span class="ava sm">+</span><span>Neues Profil</span></button>
-    <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("exit","mini")}</span><span>Abmelden</span></button>
-    <p class="note">${KONTO
-      ? "Dein Fortschritt ist gesichert und steht auf jedem Gerät zur Verfügung, auf dem du dich anmeldest."
-      : "Dein Fortschritt liegt auf diesem Gerät. Mit einem Konto kannst du auf einem anderen Handy weiterlernen."}<br>
+    <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("exit","mini")}</span><span>${istProbe() ? "Probe beenden" : "Abmelden"}</span></button>
+    <p class="note">${istProbe()
+      ? "Du schaust ohne Profil hinein. Nichts wird gespeichert, beim nächsten Öffnen fängst du wieder von vorn an."
+      : (KONTO
+        ? "Dein Fortschritt ist gesichert und steht auf jedem Gerät zur Verfügung, auf dem du dich anmeldest."
+        : "Dein Fortschritt liegt auf diesem Gerät. Mit einem Konto kannst du auf einem anderen Handy weiterlernen.")}<br>
       Stand ${BUILD} · ${TOTAL} Lektionen · ${BONUS.reduce((n,b)=>n+b.cards.length,0)} Sprichwörter · ${KULTUR.reduce((n,k)=>n+k.cards.length,0)} Kulturtexte</p>
     <button class="cta ghost" id="close">Schließen</button>
   </div>`;
@@ -2987,11 +3017,14 @@ function profileSheet(){
   el.querySelector("#tgVoice").onclick = () => { S.voice = !S.voice; save(); kill(); profileSheet(); };
 
   el.querySelector("#voiceHelp").onclick = () => { kill(); voiceHelpScreen(); };
-  el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
+  const bk = el.querySelector("#backup");
+  if(bk) bk.onclick = () => { kill(); backupScreen(); };
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
   el.querySelector("#merk").onclick = () => { kill(); savedScreen(); };
   el.querySelector("#konto").onclick = () => { kill(); kontoScreen(); };
   el.querySelector("#recht").onclick = () => { kill(); rechtScreen("impressum"); };
+  const ub = el.querySelector("#umben");
+  if(ub) ub.onclick = () => { kill(); nameScreen(); };
   el.querySelector("#out").onclick = () => { saveAll(); ACTIVE = null; S = fresh(); saveAll(); kill(); authScreen("login"); };
   el.querySelectorAll("[data-sw]").forEach(b=>{
     b.onclick = () => {
@@ -3029,7 +3062,9 @@ const TOUR = [
 
 function enterApp(){
   klangAn();
-  if(S.tourSeen) home(); else tourScreen(0);
+  if(!S.tourSeen) return tourScreen(0);
+  if(nameFehlt()) return nameScreen();
+  home();
 }
 
 function tourScreen(i){
@@ -3133,6 +3168,8 @@ function kontoScreen(modus, hinweis){
     <p class="lead">${neu
       ? "Mit einem Konto liegt dein Fortschritt nicht nur auf diesem Gerät. Wechselst du das Handy, ist alles wieder da."
       : "Melde dich an, dann holt die App deinen Fortschritt zurück."}</p>
+    ${neu ? `<div class="field"><label>Wie sollen wir dich nennen</label>
+      <input id="nick" autocomplete="nickname" maxlength="20" placeholder="z.B. Lena"></div>` : ""}
     <div class="field"><label>E-Mail</label>
       <input id="mail" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="name@mail.de"></div>
     <div class="field"><label>Passwort${neu ? ", mindestens sechs Zeichen" : ""}</label>
@@ -3164,13 +3201,15 @@ function kontoScreen(modus, hinweis){
   g("go").onclick = async () => {
     const mail = (g("mail").value || "").trim();
     const pw   = g("pw").value || "";
+    const nick = neu ? (g("nick").value || "").trim() : "";
+    if(neu && nick.length < 2){ g("e").textContent = "Bitte einen Namen mit mindestens zwei Zeichen."; return; }
     if(!mail || mail.indexOf("@") < 0){ g("e").textContent = "Bitte eine gültige E-Mail eintragen."; return; }
     if(pw.length < 6){ g("e").textContent = "Das Passwort braucht mindestens sechs Zeichen."; return; }
     g("go").disabled = true;
     g("go").textContent = neu ? "Wird erstellt" : "Wird angemeldet";
     try{
       const r = neu ? await CLOUD.registrieren(mail, pw) : await CLOUD.anmelden(mail, pw);
-      await kontoVerbinden(r.user);
+      await kontoVerbinden(r.user, nick);
       enterApp();
     }catch(err){
       g("go").disabled = false;
@@ -3235,11 +3274,11 @@ function kontoFehler(err){
    Rechtsseiten einen roten Hinweis, damit das nicht aus Versehen
    so online geht. */
 const ANBIETER = {
-  name:    "BITTE_AUSFUELLEN",   /* Vor- und Nachname oder Firmenname */
-  strasse: "BITTE_AUSFUELLEN",   /* Strasse und Hausnummer */
-  ort:     "BITTE_AUSFUELLEN",   /* Postleitzahl und Ort */
-  land:    "Türkei",
-  mail:    "BITTE_AUSFUELLEN",   /* E-Mail, muss erreichbar sein */
+  name:    "Gözde Özler",
+  strasse: "BITTE_AUSFUELLEN",   /* Strasse und Hausnummer, fehlt noch */
+  ort:     "BITTE_AUSFUELLEN",   /* Postleitzahl und Bergama, fehlt noch */
+  land:    "Bergama, İzmir, Türkei",
+  mail:    "gozdeeozler@gmail.com",
   telefon: "",                   /* freiwillig, leer lassen ist erlaubt */
   ustid:   ""                    /* nur falls vorhanden */
 };
@@ -3409,7 +3448,60 @@ function rechtScreen(seite){
 }
 
 /* ---------- 3c. PREMIUM-SPERRE ---------- */
-const proLocked = i => PAYWALL_AN && UNITS[FLAT[i].ui].pro && !S.pro;
+const proLocked  = i => PAYWALL_AN && UNITS[FLAT[i].ui].pro && !S.pro;
+/* In der Probe ist nur der Anfang offen. Weiter geht es mit einem Profil. */
+const probeLocked = i => istProbe() && i >= PROBE_LEKT;
+
+/* Wer sich frueher angemeldet hat, hat noch keinen Namen hinterlegt.
+   Statt die E-Mail anzuzeigen, wird einmal gefragt. */
+function nameFehlt(){
+  return !!KONTO && !(S && S.nick);
+}
+function nameScreen(){
+  app.innerHTML = topbar() + `<div class="auth">
+    <h1 class="brand">Wie sollen wir dich nennen</h1>
+    <p class="lead">Dieser Name steht oben auf der Startseite. Du kannst ihn später jederzeit ändern.</p>
+    <div class="field"><label>Name</label>
+      <input id="nn" autocomplete="nickname" maxlength="20" placeholder="z.B. Lena"></div>
+    <div class="err" id="e"></div>
+    <button class="cta" id="ok">Weiter</button>
+  </div>`;
+  const g = id => document.getElementById(id);
+  g("chip").onclick = profileSheet;
+  const nn = g("nn");
+  nn.value = "";
+  nn.focus();
+  const los = () => {
+    const v = (nn.value || "").trim();
+    if(v.length < 2){ g("e").textContent = "Bitte einen Namen mit mindestens zwei Zeichen."; return; }
+    S.nick = v;
+    if(ACTIVE && USERS[ACTIVE]) USERS[ACTIVE].name = v;
+    save(); saveAll();
+    home();
+  };
+  g("ok").onclick = los;
+  nn.onkeydown = e => { if(e.key === "Enter") los(); };
+}
+
+function probeEnde(){
+  app.innerHTML = topbar() + `<div class="auth" style="justify-content:flex-start;padding-top:10px">
+    <h1 class="brand">Weiter geht es mit einem Profil</h1>
+    <p class="lead">Du schaust gerade ohne Profil hinein. Dabei merkt sich die App nichts,
+    beim nächsten Öffnen fängst du wieder von vorn an.</p>
+    <p class="lead">Mit einem Profil bleibt dein Fortschritt erhalten, und mit einem Konto
+    kannst du auch auf einem anderen Handy weiterlernen.</p>
+    <button class="cta" id="pNeu">Profil anlegen, bleibt auf diesem Gerät</button>
+    <div class="switchline" style="margin-top:12px"><button id="pKonto">Konto anlegen, auf allen Geräten</button></div>
+    <div class="switchline" style="margin-top:18px"><button id="pKultur">Weiter in der Kulturecke, die bleibt offen</button></div>
+    <div class="switchline" style="margin-top:10px"><button id="pBack">Zurück</button></div>
+  </div>`;
+  const g = id => document.getElementById(id);
+  g("chip").onclick = profileSheet;
+  g("pNeu").onclick   = () => authScreen("new");
+  g("pKonto").onclick = () => kontoScreen("neu");
+  g("pKultur").onclick = () => kulturScreen();
+  g("pBack").onclick  = home;
+}
 
 function paywall(){
   app.innerHTML = topbar() + `<div class="auth" style="justify-content:flex-start;padding-top:10px">
@@ -3468,6 +3560,7 @@ function wireReiter(){
 }
 
 function home(){
+  if(nameFehlt()) return nameScreen();
   rollDay();
   const pct = Math.min(100, Math.round(S.dayXp/DAILY_GOAL*100));
   let path = "";
@@ -3496,14 +3589,18 @@ function home(){
         </button>`;
       }
       arr.forEach(i=>{
-        const l = FLAT[i], pro = proLocked(i);
-        const st = pro ? "lock" : (isDone(i) ? "done" : (isOpen(i) ? "open" : "lock"));
-        const ic = pro ? svgIcon("star") : (isDone(i) ? svgIcon("check") : (isOpen(i) ? svgIcon(u.ic) : svgIcon("lock")));
-        const sub = pro ? "Mit Premium freischalten" : (st==="lock" ? "Erst die Lektion davor" : esc(l.s));
-        const dis = (!pro && st==="lock") ? "disabled" : "";
+        const l = FLAT[i], pro = proLocked(i), prb = probeLocked(i);
+        const gesperrt = pro || prb;
+        const st = gesperrt ? "lock" : (isDone(i) ? "done" : (isOpen(i) ? "open" : "lock"));
+        const ic = prb ? svgIcon("lock") : (pro ? svgIcon("star")
+                 : (isDone(i) ? svgIcon("check") : (isOpen(i) ? svgIcon(u.ic) : svgIcon("lock"))));
+        const sub = prb ? "Weiter mit einem Profil"
+                 : (pro ? "Mit Premium freischalten"
+                 : (st==="lock" ? "Erst die Lektion davor" : esc(l.s)));
+        const dis = (!gesperrt && st==="lock") ? "disabled" : "";
         const style = (st==="open") ? ` style="background:${u.c};border-color:${u.c};box-shadow:0 4px 0 ${u.c}99"` : "";
-        path += `<button class="node" ${pro?'data-pay="1"':`data-les="${i}"`} ${dis}>
-          <div class="orb ${st}"${style}>${ic}${(!pro&&isDone(i))?'<span class="crown">fertig</span>':""}</div>
+        path += `<button class="node" ${prb?'data-probe="1"':(pro?'data-pay="1"':`data-les="${i}"`)} ${dis}>
+          <div class="orb ${st}"${style}>${ic}${(!gesperrt&&isDone(i))?'<span class="crown">fertig</span>':""}</div>
           <div class="meta"><b>${esc(l.t)}</b><span>${sub}</span></div>
         </button>`;
       });
@@ -3533,7 +3630,7 @@ function home(){
       <div class="herorow">
         <img class="logo sm" src="img/logo-192.png" alt="">
         <div class="ht">
-      <h1>${ACTIVE === "__gast" ? `Typisch <span class="tr">Türkisch</span>` : `Hallo ${esc(displayName())}`}</h1>
+      <h1>${(ACTIVE === "__gast" || istProbe()) ? `Typisch <span class="tr">Türkisch</span>` : `Hallo ${esc(displayName())}`}</h1>
         </div>
       </div>
       <p style="margin-top:9px">${ACTIVE === "__gast"
@@ -3585,6 +3682,7 @@ function home(){
   const wd = document.getElementById("wdhBtn");
   if(wd) wd.onclick = startWdh;
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
+  app.querySelectorAll("[data-probe]").forEach(b=>{ b.onclick = probeEnde; });
 }
 
 /* ---------- 4b. BONUS ---------- */
@@ -4950,12 +5048,12 @@ function finish(){
     </div>
   </div>
   <div class="foot">
-    <button class="cta" id="cont">Weiter</button>
+    <button class="cta" id="cont">${probeLocked(L.idx+1) ? "Weiter geht es mit einem Profil" : "Weiter"}</button>
     ${(L.falsch && L.falsch.length) ? `<button class="cta ghost" id="fehler">Die ${L.falsch.length} Fehler gleich noch einmal</button>` : ""}
-    ${FLAT[L.idx+1] ? `<button class="cta ghost" id="nextles">Direkt zur nächsten Lektion</button>` : ""}
+    ${(FLAT[L.idx+1] && !probeLocked(L.idx+1)) ? `<button class="cta ghost" id="nextles">Direkt zur nächsten Lektion</button>` : ""}
   </div>`;
   const fl = (L.falsch || []).slice(), ni = L.idx + 1;
-  document.getElementById("cont").onclick = home;
+  document.getElementById("cont").onclick = probeLocked(ni) ? probeEnde : home;
   const fb2 = document.getElementById("fehler");
   if(fb2) fb2.onclick = () => startFehler(fl, "");
   const nl = document.getElementById("nextles");
