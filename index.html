@@ -93,6 +93,21 @@
   .weiter .wu{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
 
   .weiter.kult .wt{font-size:16px;line-height:1.35}
+  .kzahl{margin-top:8px;font-size:13px;font-weight:800;color:var(--green-dark)}
+  .sq{margin:16px 0 4px;background:var(--red-soft);border-radius:14px;padding:14px}
+  .sqk{font-size:10.5px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;
+       color:var(--red-dark);margin-bottom:8px}
+  .sqf{margin:0 0 12px;font-size:15px;font-weight:800;line-height:1.45;color:var(--text)}
+  .sqo{display:flex;flex-direction:column;gap:8px}
+  .sqo button{text-align:left;background:#fff;border:1.5px solid var(--line);
+              border-radius:11px;padding:11px 13px;font-size:14px;font-weight:700;
+              line-height:1.35;color:var(--text)}
+  .sqo button.gut{border-color:var(--green);background:var(--green-soft);color:var(--green-dark)}
+  .sqo button.schlecht{border-color:var(--red);background:#fff;color:var(--red-dark)}
+  .sqo button[disabled]{opacity:1}
+  .sqw{margin-top:11px;font-size:13.5px;font-weight:600;line-height:1.5;color:#6b4a49}
+  .sqw b{display:block;font-weight:900;margin-bottom:3px}
+
   .themerow{border-left:4px solid var(--line)}
   .themerow .tt{flex:1;min-width:0;display:block}
   .themerow .tt em{display:block;font-style:normal;font-size:13.5px;font-weight:700;
@@ -1193,144 +1208,144 @@ const BONUS = [
    Zum Lesen, nicht zum Abfragen. Sieben Bereiche.       */
 const KULTUR = [
   { t:"Sprache und Schrift", ic:"book", c:"#5566d8", cards:[
-    {h:"Die ältesten bekannten Texte", q:"Wo wurde das Wort Türk zum ersten Mal geschrieben?", tr:"Orhun Yazıtları",
+    {h:"Die ältesten bekannten Texte", sq:{f:"Du stehst vor einer Steinstele in der Mongolei. Was steht dort zum ersten Mal?",o:["Das Wort Türk als Name eines Volkes über sich selbst", "Ein Gebet auf Arabisch", "Ein Vertrag mit Byzanz"],r:0,w:"Auf den Orhun-Steinen nennt sich ein Volk zum ersten Mal selbst Türk."}, q:"Wo wurde das Wort Türk zum ersten Mal geschrieben?", tr:"Orhun Yazıtları",
      x:"Im 8. Jahrhundert ließen türkische Herrscher im heutigen Mongolei Steinstelen aufstellen, für Kültigin, Bilge Kağan und den Ratgeber Tonyukuk. Sie sind die ältesten bekannten längeren Texte in einer Türksprache.",
      tip:"Auf ihnen steht das Wort Türk zum ersten Mal geschrieben, als Name eines Volkes über sich selbst."},
-    {h:"Ein Buch über das gute Leben", q:"Was bedeutet der Titel Kutadgu Bilig?", dh:["bilig","bilgi","Wissen"], tr:"Kutadgu Bilig",
+    {h:"Ein Buch über das gute Leben", sq:{f:"Der Titel heißt ungefähr Wissen, das glücklich macht. Worum geht es?",o:["Wie ein Herrscher und ein Mensch gerecht leben", "Wie man Handel treibt", "Wie man Pferde züchtet"],r:0,w:"Vier Figuren stehen für Gerechtigkeit, Glück, Verstand und Genügsamkeit."}, q:"Was bedeutet der Titel Kutadgu Bilig?", dh:["bilig","bilgi","Wissen"], tr:"Kutadgu Bilig",
      x:"Um 1070 schrieb Yusuf Has Hacib ein langes Versgedicht darüber, wie ein Herrscher und ein Mensch gerecht leben sollen. Vier Figuren stehen darin für Gerechtigkeit, Glück, Verstand und Genügsamkeit.",
      tip:"Der Titel heißt ungefähr: Wissen, das glücklich macht."},
-    {h:"Das erste türkische Wörterbuch", q:"Wer schrieb im 11. Jahrhundert ein Wörterbuch für Türkisch?", dh:["eb","ev","Haus"], tr:"Divanü Lûgati't-Türk",
+    {h:"Das erste türkische Wörterbuch", sq:{f:"Warum erklärte Kaşgarlı Mahmud türkische Wörter auf Arabisch?",o:["Damit die arabische Welt Türkisch lernen konnte", "Weil Türkisch keine Schrift hatte", "Weil Arabisch schöner klang"],r:0,w:"Es war ein Türkischbuch für Arabischsprachige, also genau das, was du gerade andersherum machst."}, q:"Wer schrieb im 11. Jahrhundert ein Wörterbuch für Türkisch?", dh:["eb","ev","Haus"], tr:"Divanü Lûgati't-Türk",
      x:"Kaşgarlı Mahmud sammelte zwischen 1072 und 1074 türkische Wörter, Sprichwörter und Verse und erklärte sie auf Arabisch, damit die arabische Welt Türkisch lernen konnte. Eine Weltkarte ist auch dabei.",
      tip:"Es ist damit das älteste Sprachlehrbuch für Türkisch, fast tausend Jahre vor dieser App."},
-    {h:"Warum du Türkisch sofort lesen kannst", q:"Warum kannst du Türkisch lesen, ohne ein neues Alphabet zu lernen?", tr:"Harf devrimi",
+    {h:"Warum du Türkisch sofort lesen kannst", sq:{f:"Du siehst zum ersten Mal türkischen Text und kannst ihn vorlesen. Warum?",o:["Seit 1928 schreibt man Türkisch lateinisch", "Türkisch hat keine eigenen Laute", "Weil es dem Deutschen ähnelt"],r:0,w:"Das lateinische Alphabet ersetzte die arabische Schrift, erweitert um ç, ğ, ı, ö, ş und ü."}, q:"Warum kannst du Türkisch lesen, ohne ein neues Alphabet zu lernen?", tr:"Harf devrimi",
      x:"1928 wurde die arabische Schrift durch das lateinische Alphabet ersetzt, erweitert um ç, ğ, ı, ö, ş und ü. Die Buchstaben wurden so gewählt, dass jeder Laut genau ein Zeichen bekommt.",
      tip:"Deshalb gibt es im Türkischen fast keine Ausspracheregeln zu lernen. Du liest, was dasteht."},
-    {h:"Lieder statt Bücher", q:"Wie wurden Geschichten weitergegeben, als kaum jemand lesen konnte?", tr:"Türkü, destan, âşık",
+    {h:"Lieder statt Bücher", sq:{f:"Ein âşık kommt ins Dorf. Was bringt er mit?",o:["Lieder, in denen Geschichten stecken", "Briefe aus der Stadt", "Waren zum Verkauf"],r:0,w:"Wandernde Sänger trugen Geschichten weiter, lange bevor sie aufgeschrieben wurden."}, q:"Wie wurden Geschichten weitergegeben, als kaum jemand lesen konnte?", tr:"Türkü, destan, âşık",
      x:"Vieles wurde jahrhundertelang nicht geschrieben, sondern gesungen. Wandernde Sänger, die âşık, trugen Geschichten mit der Saz von Dorf zu Dorf. Die Erzählungen um Dede Korkut gehören zu den ältesten.",
      tip:"Ein türkü ist kein Schlager, sondern eher eine Ballade, oft über Abschied, Heimat oder Ungerechtigkeit."}
   ]},
   { t:"Glaube und Weltbild", ic:"moon", c:"#2f8fc9", cards:[
-    {h:"Vor dem Islam", q:"Woran glaubten die Türken, bevor der Islam kam?", dh:["teŋri","tanrı","Gott, Himmel"], tr:"Gök Tanrı",
+    {h:"Vor dem Islam", sq:{f:"Woher kommt das heutige Wort tanrı?",o:["Von teŋri, dem Himmelsgott vor dem Islam", "Aus dem Arabischen", "Aus dem Persischen"],r:0,w:"Teŋri ist die alte Form. Das Wort blieb und heißt heute tanrı."}, q:"Woran glaubten die Türken, bevor der Islam kam?", dh:["teŋri","tanrı","Gott, Himmel"], tr:"Gök Tanrı",
      x:"Die frühen Türken verehrten einen Himmelsgott, Gök Tanrı, dazu Naturgeister und die Ahnen. Schamanen vermittelten zwischen den Welten.",
      tip:"Das Wort Tanrı für Gott ist aus dieser Zeit geblieben und wird bis heute benutzt."},
-    {h:"Spuren im Alltag", q:"Steht das blaue Auge eigentlich im Koran?", tr:"Nazar boncuğu",
+    {h:"Spuren im Alltag", sq:{f:"Jemand sagt, das blaue Auge sei eine Vorschrift des Glaubens. Stimmt das?",o:["Nein, es ist eine viel ältere Alltagsgewohnheit", "Ja, es steht im Koran", "Ja, seit dem 15. Jahrhundert"],r:0,w:"Nazar boncuğu ist Brauch, keine Glaubensvorschrift."}, q:"Steht das blaue Auge eigentlich im Koran?", tr:"Nazar boncuğu",
      x:"Das blaue Auge an Türen, Autos und Babykleidung ist keine Vorschrift des Glaubens, sondern eine viel ältere Alltagsgewohnheit gegen den bösen Blick.",
      tip:"Maşallah sagt man, um ein Lob zu entschärfen, damit es nicht wie Neid klingt."},
-    {h:"Die innere Richtung", q:"Was suchten Mevlana und Yunus Emre im Glauben?", tr:"Tasavvuf",
+    {h:"Die innere Richtung", sq:{f:"Was suchten Mevlana und Yunus Emre?",o:["Den inneren Weg statt der äußeren Form", "Politische Macht", "Strenge Buchstabentreue"],r:0,w:"Tasavvuf ist die mystische Strömung im türkischen Islam."}, q:"Was suchten Mevlana und Yunus Emre im Glauben?", tr:"Tasavvuf",
      x:"Nach der Annahme des Islam entstand eine starke mystische Strömung. Mevlana in Konya und Yunus Emre in einfachem Türkisch prägten eine Sprache von Liebe, Demut und Toleranz, die bis in die Alltagssprache reicht.",
      tip:"Yunus Emre schrieb bewusst nicht auf Persisch oder Arabisch, sondern so, dass die Leute im Dorf ihn verstanden."},
-    {h:"Ehre im Handwerk", q:"Welche Regeln hatten Handwerker, lange bevor es Prüfsiegel gab?", tr:"Ahilik",
+    {h:"Ehre im Handwerk", sq:{f:"Ein Handwerker im Mittelalter verkauft schlechte Ware. Was passiert?",o:["Die Bruderschaft greift ein", "Nichts, es gab keine Regeln", "Der Sultan prüft jede Ware"],r:0,w:"Die Ahi-Bruderschaften hatten eigene Regeln: ehrliche Ware, fairer Preis."}, q:"Welche Regeln hatten Handwerker, lange bevor es Prüfsiegel gab?", tr:"Ahilik",
      x:"Im Mittelalter organisierten sich Handwerker in Bruderschaften mit eigenen Regeln: ehrliche Ware, fairer Preis, Verantwortung für den Lehrling, Hilfe für den Nachbarn im selben Gewerbe.",
      tip:"Davon stammt die Vorstellung, dass ein Handwerk eine Haltung ist und nicht nur ein Beruf."},
-    {h:"Die Feste", q:"Welche zwei Feste teilen das türkische Jahr?", tr:"Bayram",
+    {h:"Die Feste", sq:{f:"Dein Nachbar sagt, morgen ist Ramazan Bayramı. Was kommt auf dich zu?",o:["Besuche und viele Süßigkeiten", "Ein stiller Fastentag", "Ein Arbeitstag wie jeder andere"],r:0,w:"Das Fest nach dem Fastenmonat ist für Süßigkeiten bekannt."}, q:"Welche zwei Feste teilen das türkische Jahr?", tr:"Bayram",
      x:"Zwei große Feste gliedern das Jahr: Ramazan Bayramı nach dem Fastenmonat, bekannt für Süßigkeiten, und Kurban Bayramı, bei dem Fleisch an Nachbarn und Bedürftige verteilt wird.",
      tip:"Kinder küssen den Älteren die Hand und führen sie an die Stirn. Dafür gibt es Geld und Bonbons."}
   ]},
   { t:"Gast und Gemeinschaft", ic:"door", c:"#cf5230", cards:[
-    {h:"Der Gast kommt von oben", q:"Warum bekommt ein Gast das Beste im Haus, auch wenn wenig da ist?", tr:"Misafirperverlik",
+    {h:"Der Gast kommt von oben", sq:{f:"Du kommst unangekündigt vorbei und merkst, dass wenig im Haus ist.",o:["Du bekommst trotzdem das Beste", "Man bittet dich, später zu kommen", "Man teilt die Kosten"],r:0,w:"Gastfreundschaft gilt als Pflicht, nicht als nette Geste."}, q:"Warum bekommt ein Gast das Beste im Haus, auch wenn wenig da ist?", tr:"Misafirperverlik",
      x:"Gastfreundschaft ist keine nette Geste, sondern eine Pflicht. Wer kommt, bekommt das Beste im Haus, auch wenn es das Letzte ist. Ablehnen gilt leicht als Kränkung.",
      tip:"Sag nicht zu schnell nein zum zweiten Teller. Ein einmaliges Nein wird oft nur als Höflichkeit verstanden."},
-    {h:"Gemeinsam arbeiten", q:"Wer hilft beim Dachdecken, wenn niemand dafür bezahlt wird?", tr:"İmece",
+    {h:"Gemeinsam arbeiten", sq:{f:"Im Dorf wird ein Dach gedeckt. Wer hilft?",o:["Die Nachbarschaft, ohne Rechnung", "Bezahlte Arbeiter", "Niemand, jeder für sich"],r:0,w:"İmece heißt gemeinsame Arbeit. Bezahlt wird nicht, geholfen wird zurück."}, q:"Wer hilft beim Dachdecken, wenn niemand dafür bezahlt wird?", tr:"İmece",
      x:"Wenn im Dorf ein Dach gedeckt, geerntet oder ein Haus gebaut wird, hilft die Nachbarschaft ohne Rechnung. Dafür hilft man später zurück.",
      tip:"Das Wort wird heute auch für gemeinsame Projekte in der Stadt benutzt."},
-    {h:"Die Nachbarin ist Familie", q:"Warum nennst du eine fremde Frau Teyze?", tr:"Abi, abla, teyze",
+    {h:"Die Nachbarin ist Familie", sq:{f:"Eine Frau, ein paar Jahre älter als du, arbeitet im Laden. Wie sprichst du sie an?",o:["Abla", "Teyze", "Mit dem Vornamen"],r:0,w:"Abla für etwas ältere Frauen, teyze für deutlich ältere. Verwandtschaftswörter gelten auch für Fremde."}, q:"Warum nennst du eine fremde Frau Teyze?", tr:"Abi, abla, teyze",
      x:"Fremde werden nach Alter angesprochen, nicht nach Namen: abi großer Bruder, abla große Schwester, teyze Tante, amca Onkel. Das gilt auch für den Händler auf dem Markt.",
      tip:"Für Deutschsprachige ist das oft der schönste Teil der Sprache, weil es sofort Nähe herstellt."},
-    {h:"Wenn jemand geht", q:"Warum wird ein Abschied mit Trommeln gefeiert?", tr:"Asker uğurlama",
+    {h:"Wenn jemand geht", sq:{f:"Jemand wird vor dem Wehrdienst verabschiedet. Wie klingt das?",o:["Laut, mit Trommeln und Fahnen", "Still, nur die Familie", "Gar nicht, man geht einfach"],r:0,w:"Abschiede werden gefeiert, nicht still begangen."}, q:"Warum wird ein Abschied mit Trommeln gefeiert?", tr:"Asker uğurlama",
      x:"Abschiede werden laut gefeiert, nicht still begangen. Beim Abschied vor dem Wehrdienst wird mit Trommeln, Fahnen und Tanz durch die Straßen gezogen.",
      tip:"Dasselbe Prinzip gilt für Hochzeiten, Rückkehr aus dem Ausland und bestandene Prüfungen."},
-    {h:"Die Henna-Nacht", q:"Was passiert am Abend vor einer türkischen Hochzeit?", tr:"Kına gecesi",
+    {h:"Die Henna-Nacht", sq:{f:"Am Abend vor der Hochzeit kommen die Frauen zusammen. Was passiert?",o:["Der Braut wird Henna in die Hand gelegt", "Der Vertrag wird unterschrieben", "Die Geschenke werden gezählt"],r:0,w:"Kına gecesi. Es wird gesungen und oft geweint."}, q:"Was passiert am Abend vor einer türkischen Hochzeit?", tr:"Kına gecesi",
      x:"Am Abend vor der Hochzeit kommen die Frauen zusammen. Der Braut wird Henna in die Hand gelegt, es wird gesungen und oft geweint, weil sie das Elternhaus verlässt.",
      tip:"Das Weinen gehört dazu und ist kein schlechtes Zeichen."}
   ]},
   { t:"Küche und Tisch", ic:"tea", c:"#e08a2e", cards:[
-    {h:"Çay", q:"Warum hat das türkische Teeglas eine Taille?", tr:"İnce belli bardak",
+    {h:"Çay", sq:{f:"Wie wird türkischer Tee gekocht?",o:["In zwei gestapelten Kannen", "In einer Kaffeemaschine", "Im Samowar mit Zitrone"],r:0,w:"Unten Wasser, oben starker Tee. Gemischt wird erst im Glas."}, q:"Warum hat das türkische Teeglas eine Taille?", tr:"İnce belli bardak",
      x:"Schwarzer Tee aus der Schwarzmeerregion, aufgebrüht in zwei gestapelten Kannen, serviert im tailliertem Glas. Im Basar wird er auf Tabletts durch die Gassen getragen.",
      tip:"Die Teekultur wurde 2022 gemeinsam mit Aserbaidschan in die UNESCO-Liste des immateriellen Kulturerbes aufgenommen."},
-    {h:"Türk kahvesi", q:"Was heißt orta, wenn du Kaffee bestellst?", tr:"Sade, orta, şekerli",
+    {h:"Türk kahvesi", sq:{f:"Du bestellst Kaffee und wirst gefragt: sade, orta oder şekerli?",o:["Es geht um den Zucker", "Es geht um die Größe", "Es geht um die Temperatur"],r:0,w:"Sade ohne, orta mittel, şekerli süß. Gezuckert wird beim Kochen, nicht danach."}, q:"Was heißt orta, wenn du Kaffee bestellst?", tr:"Sade, orta, şekerli",
      x:"Fein gemahlener Kaffee wird im Cezve langsam aufgekocht und mit dem Satz serviert, dazu ein Glas Wasser und etwas Süßes. Die Süße wird beim Bestellen festgelegt, nicht danach.",
      tip:"Der türkische Kaffee steht seit 2013 auf der UNESCO-Liste. Aus dem Satz wird anschließend gern die Zukunft gelesen."},
-    {h:"Frühstück ist eine Mahlzeit, kein Brötchen", q:"Warum dauert ein türkisches Frühstück Stunden?", tr:"Kahvaltı",
+    {h:"Frühstück ist eine Mahlzeit, kein Brötchen", sq:{f:"Was steht beim türkischen Frühstück auf dem Tisch?",o:["Oliven, mehrere Käse, Eier, Honig, Brot und Tee", "Kaffee und ein Brötchen", "Nur Tee und Simit"],r:0,w:"Alles kommt gleichzeitig und bleibt stehen. Kahvaltı heißt ungefähr: vor dem Kaffee."}, q:"Warum dauert ein türkisches Frühstück Stunden?", tr:"Kahvaltı",
      x:"Oliven, mehrere Käse, Tomaten, Gurken, Eier, Honig mit Sahne, Marmeladen, frisches Brot und immer Tee. Alles kommt gleichzeitig in kleinen Schalen auf den Tisch.",
      tip:"Das Wort kahvaltı heißt wörtlich: das, was unter den Kaffee kommt."},
-    {h:"Essen auf der Straße", q:"Was isst man in der Türkei im Stehen?", tr:"Sokak lezzetleri",
+    {h:"Essen auf der Straße", sq:{f:"Es ist Abend, du hast Hunger und willst etwas typisch Türkisches von der Straße.",o:["Midye dolma mit Zitrone", "Ein belegtes Brötchen", "Eine Dose Suppe"],r:0,w:"Straßenessen ist eigene Esskultur, kein Notfall."}, q:"Was isst man in der Türkei im Stehen?", tr:"Sokak lezzetleri",
      x:"Simit am Morgen, midye dolma mit Zitrone am Abend, kumpir mit zehn Belägen, çiğ köfte in Salatblättern. Straßenessen ist kein Notfall, sondern eigene Esskultur.",
      tip:"Döner, wie Deutschland ihn kennt, ist eine Berliner Weiterentwicklung. In der Türkei bekommst du ihn meist auf dem Teller oder in dünnem Fladen."},
-    {h:"Geschützte Herkunft", q:"Warum darf nicht jede Baklava Antep heißen?", tr:"Coğrafi işaret",
+    {h:"Geschützte Herkunft", sq:{f:"Auf der Packung steht Antep baklavası. Was heißt das?",o:["Sie kommt wirklich aus Gaziantep", "Sie folgt nur einem Rezept", "Es ist bloß ein Markenname"],r:0,w:"Geschützte Herkunft. Den Ortsnamen darf nur tragen, was von dort kommt."}, q:"Warum darf nicht jede Baklava Antep heißen?", tr:"Coğrafi işaret",
      x:"Viele Produkte dürfen den Ortsnamen nur tragen, wenn sie wirklich von dort kommen: Antep baklavası, Malatya kayısısı, Aydın inciri, Taşköprü sarımsağı.",
      tip:"Antep baklavası war das erste türkische Produkt mit einer geschützten Herkunftsangabe in der EU."}
   ]},
   { t:"Kunst und Handwerk", ic:"brush", c:"#9154d8", cards:[
-    {h:"Teppiche erzählen", q:"Was erzählt ein Teppich, wenn man die Muster lesen kann?", tr:"Halı ve kilim",
+    {h:"Teppiche erzählen", sq:{f:"Auf einem Teppich siehst du eine Frau mit den Händen in den Hüften.",o:["Eli belinde, ein Zeichen für Fruchtbarkeit", "Eine Tänzerin", "Die Weberin selbst"],r:0,w:"Die Muster sind Zeichen, kein Dekor."}, q:"Was erzählt ein Teppich, wenn man die Muster lesen kann?", tr:"Halı ve kilim",
      x:"Die Muster sind kein Dekor, sondern Zeichen. Eli belinde, die Frau mit den Händen in den Hüften, steht für Fruchtbarkeit, koçboynuzu, das Widderhorn, für Kraft.",
      tip:"Wer die Motive lesen kann, erkennt oft die Region und manchmal die Geschichte der Weberin."},
-    {h:"Das Blau von İznik", q:"Was macht die Fliesen aus İznik so besonders?", tr:"Çini",
+    {h:"Das Blau von İznik", sq:{f:"Woran erkennst du Fliesen aus İznik?",o:["An Tulpen, Nelken und einem besonderen Rot", "An goldener Schrift", "An schwarzen Mustern"],r:0,w:"Zwischen dem 15. und 17. Jahrhundert entstand dort dieses Rot."}, q:"Was macht die Fliesen aus İznik so besonders?", tr:"Çini",
      x:"Zwischen dem 15. und 17. Jahrhundert entstanden in İznik Fliesen mit Tulpen, Nelken und einem Rot, das später niemand mehr nachmischen konnte.",
      tip:"Ganze Moscheeinnenräume sind damit ausgekleidet. Die Tulpe kam übrigens von hier nach Holland."},
-    {h:"Schrift als Bild", q:"Wie malt man auf Wasser?", tr:"Hat ve ebru",
+    {h:"Schrift als Bild", sq:{f:"Ebru ist Malerei auf",o:["Wasser", "Seide", "Holz"],r:0,w:"Die Farben schwimmen auf einer zähen Flüssigkeit und werden aufs Papier abgenommen."}, q:"Wie malt man auf Wasser?", tr:"Hat ve ebru",
      x:"Kalligrafie machte aus Buchstaben Kunstwerke. Ebru ist Malerei auf Wasser: Farben werden auf eine zähe Flüssigkeit getropft, gezogen und mit Papier abgenommen.",
      tip:"Ebru steht seit 2014 auf der UNESCO-Liste des immateriellen Kulturerbes."},
-    {h:"Kuppeln und Portale", q:"Woran erkennst du seldschukische und osmanische Bauten?", tr:"Mimari",
+    {h:"Kuppeln und Portale", sq:{f:"Ein gewaltiges Steinportal mit tiefen Ornamenten. Wessen Handschrift?",o:["Der Seldschuken", "Der Osmanen", "Der Byzantiner"],r:0,w:"Die Osmanen setzten dagegen auf weite Kuppeln."}, q:"Woran erkennst du seldschukische und osmanische Bauten?", tr:"Mimari",
      x:"Die Seldschuken bauten gewaltige Steinportale mit tiefen Ornamenten. Die Osmanen setzten auf weite Kuppeln und ganze Anlagen mit Moschee, Schule, Küche und Bad.",
      tip:"Mimar Sinan baute im 16. Jahrhundert hunderte Bauwerke. Die Selimiye in Edirne hielt er selbst für sein Meisterstück."},
-    {h:"Ringen in Olivenöl", q:"Warum reiben sich Ringer in Edirne mit Olivenöl ein?", tr:"Yağlı güreş",
+    {h:"Ringen in Olivenöl", sq:{f:"Beim Kırkpınar in Edirne ringen Männer eingeölt. Seit wann gibt es das Fest?",o:["Seit dem 14. Jahrhundert", "Seit 1950", "Seit der Republik"],r:0,w:"Eines der ältesten Sportfeste, die bis heute gefeiert werden."}, q:"Warum reiben sich Ringer in Edirne mit Olivenöl ein?", tr:"Yağlı güreş",
      x:"Beim Kırkpınar in Edirne ringen Männer in Lederhosen und mit Olivenöl eingerieben. Das Fest findet seit dem 14. Jahrhundert statt.",
      tip:"Es steht seit 2010 auf der UNESCO-Liste und gilt als eines der ältesten durchgehend gefeierten Sportfeste der Welt."}
   ]},
   { t:"Nur hier so", ic:"lemon", c:"#c9931f", cards:[
-    {h:"Limon kolonyası", q:"Warum riecht es im Bus plötzlich nach Zitrone?", tr:"Kolonya",
+    {h:"Limon kolonyası", sq:{f:"Nach langer Busfahrt hält dir jemand eine Flasche hin. Was machst du?",o:["Die Hände aufhalten", "Einen Schluck nehmen", "Höflich ablehnen"],r:0,w:"Kolonya wird über die Hände gegossen, nicht getrunken."}, q:"Warum riecht es im Bus plötzlich nach Zitrone?", tr:"Kolonya",
      x:"Zitronenduftendes Kölnischwasser wird Gästen beim Ankommen über die Hände gegossen, im Bus nach langer Fahrt angeboten und an Feiertagen von Haus zu Haus gereicht.",
      tip:"Es ist Begrüßung, Erfrischung und kleine Fürsorge in einem. Ablehnen tut niemand."},
-    {h:"Das Geld wandert nach vorn", q:"Wie bezahlst du im Dolmuş, wenn du ganz hinten sitzt?", tr:"Dolmuş",
+    {h:"Das Geld wandert nach vorn", sq:{f:"Du sitzt hinten im Dolmuş und musst zahlen.",o:["Gib das Geld nach vorn weiter", "Ruf dem Fahrer zu", "Steh auf und geh nach vorn"],r:0,w:"Jeder reicht weiter bis zum Fahrer. Das Wechselgeld kommt denselben Weg zurück."}, q:"Wie bezahlst du im Dolmuş, wenn du ganz hinten sitzt?", tr:"Dolmuş",
      x:"Im Sammeltaxi gibt man sein Geld dem Vordermann, der es weiterreicht bis zum Fahrer. Das Wechselgeld kommt denselben Weg zurück, über fremde Hände, und es kommt an.",
      tip:"Zum Aussteigen reicht ein müsait bir yerde, an einer passenden Stelle bitte."},
-    {h:"Die Tasse umdrehen", q:"Was liest man aus einer umgedrehten Kaffeetasse?", tr:"Kahve falı",
+    {h:"Die Tasse umdrehen", sq:{f:"Du trinkst deinen Kaffee aus und jemand nimmt dir die Tasse weg.",o:["Sie wird umgedreht und später gedeutet", "Sie wird gespült", "Sie wird nachgefüllt"],r:0,w:"Die Figuren im Satz werden gelesen, meist mit viel Lachen."}, q:"Was liest man aus einer umgedrehten Kaffeetasse?", tr:"Kahve falı",
      x:"Nach dem Kaffee wird die Tasse auf die Untertasse gestülpt, abgekühlt und gedeutet. Die Figuren im Satz werden gelesen wie Wolken.",
      tip:"Niemand glaubt es ganz, und alle hören trotzdem genau zu. Es ist vor allem ein Anlass, zusammenzusitzen."},
-    {h:"Decken auf allem", q:"Warum liegen überall gehäkelte Deckchen?", tr:"Dantel ve çeyiz",
+    {h:"Decken auf allem", sq:{f:"Woher kommen die gehäkelten Deckchen im Wohnzimmer meistens?",o:["Aus der Aussteuer", "Aus dem Möbelhaus", "Vom Markt in Istanbul"],r:0,w:"Çeyiz, über Jahre vorbereitet und mitgebracht."}, q:"Warum liegen überall gehäkelte Deckchen?", tr:"Dantel ve çeyiz",
      x:"Handgehäkelte Deckchen auf Tischen, Sesselrücken und früher auf dem Fernseher. Vieles davon stammt aus der Aussteuertruhe, die über Jahre gefüllt wurde.",
      tip:"Die Spitze am Rand eines Kopftuchs, oya, hatte früher eine eigene Zeichensprache."},
-    {h:"Die Teepause", q:"Warum beginnt ein Geschäft mit Tee und nicht mit Zahlen?", tr:"Çay molası",
+    {h:"Die Teepause", sq:{f:"Du willst in einem Laden über den Preis reden. Womit fängt es an?",o:["Mit Tee", "Mit der Zahl", "Mit dem Vertrag"],r:0,w:"Tee wird bestellt und geliefert. Geredet wird danach."}, q:"Warum beginnt ein Geschäft mit Tee und nicht mit Zahlen?", tr:"Çay molası",
      x:"Im Laden, in der Werkstatt, im Büro: Tee wird bestellt, geliefert und gemeinsam getrunken. Verhandlungen beginnen damit und enden damit.",
      tip:"Ein Geschäft ohne angebotenen Tee gilt als unhöflich, auch wenn du nichts kaufst."}
   ]},
   { t:"Aberglaube", ic:"eye", c:"#1f9b92", cards:[
-    {h:"Klopf auf Holz, aber zieh am Ohr", q:"Warum klopft man auf Holz und zieht dabei am Ohr?", tr:"Tahtaya vur, kulağını çek",
+    {h:"Klopf auf Holz, aber zieh am Ohr", sq:{f:"Jemand spricht etwas Schlimmes laut aus. Was machst du?",o:["Am Ohrläppchen ziehen und auf Holz klopfen", "Nichts sagen", "Das Thema wechseln"],r:0,w:"Erst das Ohr, dann dreimal klopfen und zweimal schnalzen."}, q:"Warum klopft man auf Holz und zieht dabei am Ohr?", tr:"Tahtaya vur, kulağını çek",
      x:"Wenn jemand etwas Schlimmes ausspricht, klopft man dreimal auf Holz, zieht sich am Ohrläppchen und schnalzt zweimal mit der Zunge. Die ganze Folge gehört dazu, nicht nur das Klopfen.",
      tip:"Allah korusun oder Tövbe tövbe wird oft dazu gesagt."},
-    {h:"Wasser hinterhergießen", q:"Warum wird hinter einem Reisenden Wasser ausgegossen?", tr:"Arkasından su dökmek",
+    {h:"Wasser hinterhergießen", sq:{f:"Du fährst los und hinter dir wird Wasser auf die Straße gegossen.",o:["Ein Wunsch, dass die Reise läuft wie Wasser", "Ein Zeichen, dass du nicht willkommen warst", "Nur Straßenreinigung"],r:0,w:"Su gibi git, su gibi gel. Geh wie Wasser, komm wie Wasser."}, q:"Warum wird hinter einem Reisenden Wasser ausgegossen?", tr:"Arkasından su dökmek",
      x:"Wenn jemand auf eine Reise geht, wird hinter ihm Wasser auf die Straße gegossen. Der Wunsch dahinter: Möge es gehen wie Wasser, leicht und ohne Hindernis.",
      tip:"Du hörst dazu oft: Su gibi git, su gibi gel."},
-    {h:"Nicht am Abend", q:"Was macht man nach Sonnenuntergang besser nicht?", tr:"Akşam yapılmayanlar",
+    {h:"Nicht am Abend", sq:{f:"Es ist dunkel geworden. Was macht man lieber morgen?",o:["Nägel schneiden und hinauskehren", "Kochen", "Telefonieren"],r:0,w:"Nach Sonnenuntergang gibt man auch kein Salz und kein Brot aus dem Haus."}, q:"Was macht man nach Sonnenuntergang besser nicht?", tr:"Akşam yapılmayanlar",
      x:"Nach Sonnenuntergang schneidet man keine Nägel, kehrt nicht den Boden hinaus, gibt kein Salz und kein Brot aus dem Haus. Angeblich geht sonst das Glück mit.",
      tip:"Viele halten sich daran, ohne daran zu glauben. Es ist eher Gewohnheit als Überzeugung."},
-    {h:"Brot hebt man auf", q:"Was passiert mit Brot, das auf den Boden fällt?", tr:"Ekmeğe saygı",
+    {h:"Brot hebt man auf", sq:{f:"Ein Stück Brot liegt auf dem Boden.",o:["Aufheben, küssen, an die Stirn führen", "Liegen lassen", "In den Müll werfen"],r:0,w:"Brot wird nicht weggeworfen."}, q:"Was passiert mit Brot, das auf den Boden fällt?", tr:"Ekmeğe saygı",
      x:"Brot, das auf dem Boden liegt, wird aufgehoben, geküsst und an die Stirn geführt. Weggeworfen wird es nicht, altes Brot kommt in einen Beutel an den Zaun.",
      tip:"Das ist weniger Aberglaube als tief sitzender Respekt vor Essen, aus Zeiten, in denen es knapp war."},
-    {h:"Die Schere nicht in die Hand", q:"Warum reicht dir niemand eine Schere direkt in die Hand?", tr:"Makası elden vermek",
+    {h:"Die Schere nicht in die Hand", sq:{f:"Du brauchst die Schere, die dein Gegenüber gerade hält.",o:["Er legt sie hin, du nimmst sie", "Er gibt sie dir in die Hand", "Er wirft sie dir zu"],r:0,w:"Direkt von Hand zu Hand soll Streit geben."}, q:"Warum reicht dir niemand eine Schere direkt in die Hand?", tr:"Makası elden vermek",
      x:"Scheren und Messer reicht man nicht direkt von Hand zu Hand, sondern legt sie hin. Sonst soll es Streit geben.",
      tip:"Ähnliches gilt für Salz. Wer es direkt überreicht, streitet sich angeblich bald."},
-    {h:"Das blaue Auge", q:"Warum kann zu viel Lob gefährlich sein?", tr:"Nazar",
+    {h:"Das blaue Auge", sq:{f:"Alle loben dein Baby. Was sagt die Großmutter dazu?",o:["Maşallah", "Teşekkürler", "Hayırlı olsun"],r:0,w:"Maşallah entschärft das Lob, damit es nicht wie Neid klingt."}, q:"Warum kann zu viel Lob gefährlich sein?", tr:"Nazar",
      x:"Zu viel Lob zieht den bösen Blick an, besonders bei Babys und bei guten Nachrichten. Deshalb das blaue Auge an der Wiege, im Auto und am Revers.",
      tip:"Wenn du etwas lobst, häng Maşallah an. Das nimmt dem Lob den Neid."},
-    {h:"Juckende Hand, zuckendes Auge", q:"Deine linke Hand juckt. Was bedeutet das?", tr:"Avuç kaşınması",
+    {h:"Juckende Hand, zuckendes Auge", sq:{f:"Deine linke Hand juckt.",o:["Geld kommt", "Geld geht", "Besuch kommt"],r:0,w:"Links kommt, rechts geht. Ernst nimmt es kaum jemand, gesagt wird es trotzdem."}, q:"Deine linke Hand juckt. Was bedeutet das?", tr:"Avuç kaşınması",
      x:"Juckt die linke Hand, kommt Geld. Juckt die rechte, geht Geld. Zuckt das rechte Auge, kommt eine gute Nachricht, beim linken eine schlechte.",
      tip:"Über die Seiten streiten sich die Leute, je nach Region genau andersherum."}
   ]},
   { t:"Orte", ic:"balloon", c:"#d94f90", cards:[
-    {h:"Kapadokya", q:"Wie entstehen Feenkamine?", tr:"Peri bacaları",
+    {h:"Kapadokya", sq:{f:"Wie sind die Feenkamine entstanden?",o:["Wind und Wasser haben weiches Tuffgestein geformt", "Menschen haben sie aufgeschichtet", "Ein Vulkan hat sie ausgeworfen"],r:0,w:"In das weiche Gestein wurden später Kirchen und ganze unterirdische Städte gegraben."}, q:"Wie entstehen Feenkamine?", tr:"Peri bacaları",
      x:"Weiches Tuffgestein, aus dem Wind und Wasser Kegel geformt haben, dazu Höhlenkirchen und unterirdische Städte. Morgens steigen hunderte Ballons auf.",
      tip:"Der Nationalpark Göreme steht seit 1985 auf der UNESCO-Welterbeliste."},
-    {h:"Pamukkale", q:"Warum ist Pamukkale weiß?", tr:"Travertenler",
+    {h:"Pamukkale", sq:{f:"Warum sind die Terrassen von Pamukkale weiß?",o:["Kalk aus dem Thermalwasser", "Schnee", "Weißer Marmor"],r:0,w:"Über Jahrtausende abgelagert. Oben liegt das antike Hierapolis."}, q:"Warum ist Pamukkale weiß?", tr:"Travertenler",
      x:"Kalkhaltiges Thermalwasser hat über Jahrtausende weiße Terrassen gebildet. Oben liegen die Ruinen der antiken Stadt Hierapolis.",
      tip:"Der Name heißt Baumwollburg. Barfuß laufen ist Pflicht, zum Schutz der Kalkflächen."},
-    {h:"Göbeklitepe", q:"Welcher Tempel ist älter als Stonehenge?", tr:"Dünyanın en eski tapınağı",
+    {h:"Göbeklitepe", sq:{f:"Wie alt sind die Anlagen bei Şanlıurfa ungefähr?",o:["Rund elftausend Jahre", "Rund zweitausend Jahre", "Rund fünfhundert Jahre"],r:0,w:"Älter als Stonehenge und älter als die Pyramiden."}, q:"Welcher Tempel ist älter als Stonehenge?", tr:"Dünyanın en eski tapınağı",
      x:"Bei Şanlıurfa stehen kreisförmige Anlagen mit T-förmigen Pfeilern, geschmückt mit Tieren. Sie sind rund elftausend Jahre alt, älter als Ackerbau, Töpferei und Schrift.",
      tip:"Der Fund hat die Annahme umgedreht, dass erst Siedlungen entstanden und dann Tempel."},
-    {h:"Efes", q:"Welche antike Stadt kannst du heute noch durchlaufen?", tr:"Antik kent",
+    {h:"Efes", sq:{f:"Was kannst du in Efes heute noch sehen?",o:["Die Celsus-Bibliothek", "Einen osmanischen Palast", "Eine Kreuzfahrerburg"],r:0,w:"Dazu das große Theater und Straßen aus Marmor."}, q:"Welche antike Stadt kannst du heute noch durchlaufen?", tr:"Antik kent",
      x:"Eine der besterhaltenen antiken Städte überhaupt, mit der Celsus-Bibliothek, dem großen Theater und Straßen aus Marmor.",
      tip:"Seit 2015 UNESCO-Welterbe. Für viele deutsche Reisende der erste Berührungspunkt mit der Türkei."},
-    {h:"Nemrut Dağı", q:"Wem gehören die Steinköpfe auf zweitausend Metern?", tr:"Dev heykeller",
+    {h:"Nemrut Dağı", sq:{f:"Was liegt auf über zweitausend Metern Höhe?",o:["Kolossale Steinköpfe eines Königsgrabs", "Ein Kloster", "Eine Festung"],r:0,w:"Aus dem ersten Jahrhundert vor unserer Zeit."}, q:"Wem gehören die Steinköpfe auf zweitausend Metern?", tr:"Dev heykeller",
      x:"Auf über zweitausend Metern liegen die kolossalen Steinköpfe eines Königsgrabs aus dem ersten Jahrhundert vor Christus, vom Erdbeben vom Sockel geworfen.",
      tip:"Die meisten kommen zum Sonnenaufgang. Es ist kalt dort oben, auch im Sommer."}
   ]}
@@ -2051,7 +2066,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},klang:"wald",kVol:25,sVol:70,
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},kg:{},klang:"wald",kVol:25,sVol:70,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -3054,14 +3069,25 @@ function wireAmb(){
 }
 
 /* Ein Kulturstück je Tag, für alle gleich gemischt nach Datum. */
+const kSchl  = (ti,ci) => ti + "-" + ci;
+const kFertig = (ti,ci) => !!(S.kg && S.kg[kSchl(ti,ci)]);
+function kZahl(){
+  let g = 0, n = 0;
+  KULTUR.forEach((th,ti)=>th.cards.forEach((c,ci)=>{ n++; if(kFertig(ti,ci)) g++; }));
+  return { g, n };
+}
+
 function kulturHeute(tag){
   const alle = [];
   KULTUR.forEach((th, ti) => th.cards.forEach((c, ci) => alle.push({ ti, ci })));
   if(!alle.length) return null;
+  /* Was noch offen ist, kommt zuerst dran. */
+  const offen = alle.filter(a => !kFertig(a.ti, a.ci));
+  const quelle = offen.length ? offen : alle;
   const t = tag || todayStr();
   let x = 0;
   for(let i = 0; i < t.length; i++) x = (x * 31 + t.charCodeAt(i)) >>> 0;
-  return alle[x % alle.length];
+  return quelle[x % quelle.length];
 }
 
 function kulturScreen(){
@@ -3070,6 +3096,7 @@ function kulturScreen(){
     <div class="hero">
       <h1>Kulturecke</h1>
       <p>Wie in der Türkei wirklich gelebt, gesprochen und geglaubt wird. Zum Lesen, in deinem Tempo.</p>
+      ${(()=>{ const z = kZahl(); return `<p class="kzahl">${z.g} von ${z.n} Stücken verstanden</p>`; })()}
     </div>
     ${(()=>{
       const k = kulturHeute();
@@ -3091,7 +3118,7 @@ function kulturScreen(){
         <span class="ti" style="color:${th.c};background:${th.c}1a">${svgIcon(th.ic)}</span>
         <span class="tt"><b>${esc(th.t)}</b>
           ${koeder ? `<em>${esc(koeder)}</em>` : ""}
-          <small>${th.cards.length} Abschnitte</small></span>
+          <small>${th.cards.filter((c,ci)=>kFertig(ti,ci)).length} von ${th.cards.length} verstanden</small></span>
         ${m && m.t===ti ? `<span class="mk">${svgIcon("mark","mini")}</span>` : ""}
       </button>`;}).join("")}
     </div>
@@ -3141,6 +3168,12 @@ function kulturRead(ti, scrollTo){
             <div class="dhm">${esc(c.dh[2])}</div>
           </div>` : ""}
           <div class="tp"><b>Wusstest du schon?</b>${esc(c.tip)}</div>
+          ${c.sq ? `<div class="sq" id="sq${ci}">
+            <div class="sqk">Verstehst du Türkisch?</div>
+            <p class="sqf">${esc(c.sq.f)}</p>
+            <div class="sqo">${c.sq.o.map((o,oi)=>`<button data-sq="${ci}" data-oi="${oi}">${esc(o)}</button>`).join("")}</div>
+            <div class="sqw" hidden></div>
+          </div>` : ""}
           <button class="mkbtn ${on?"on":""}" data-mk="${ci}">${svgIcon("mark","mini")} ${on?"Lesezeichen hier":"Lesezeichen setzen"}</button>
         </div>`;
       }).join("")}
@@ -3150,6 +3183,31 @@ function kulturRead(ti, scrollTo){
   document.getElementById("quit").onclick = () => { leaveRead(); home(); };
   document.getElementById("back").onclick = () => { leaveRead(); kulturScreen(); };
   wireAmb();
+  app.querySelectorAll("[data-sq]").forEach(b=>{
+    b.onclick = () => {
+      const ci = +b.dataset.sq, oi = +b.dataset.oi;
+      const c = th.cards[ci], box = document.getElementById("sq" + ci);
+      if(!c.sq || !box || box.dataset.fertig) return;
+      box.dataset.fertig = "1";
+      const ok = oi === c.sq.r;
+      box.querySelectorAll("[data-sq]").forEach((x,xi)=>{
+        x.disabled = true;
+        if(xi === c.sq.r) x.classList.add("gut");
+        else if(xi === oi) x.classList.add("schlecht");
+      });
+      const w = box.querySelector(".sqw");
+      w.hidden = false;
+      w.innerHTML = `<b>${ok ? "Genau so ist es." : "Nicht ganz."}</b>${esc(c.sq.w)}`;
+      sfx(ok ? "right" : "wrong");
+      /* Das türkische Wort des Stücks wandert ins Gedächtnis. */
+      if(c.tr) wortAntwort(c.tr, ok);
+      if(ok){
+        if(!S.kg) S.kg = {};
+        if(!S.kg[kSchl(ti,ci)]){ S.kg[kSchl(ti,ci)] = true; addXp(15); }
+      }
+      save();
+    };
+  });
   app.querySelectorAll("[data-mk]").forEach(b=>{
     b.onclick = () => {
       const ci = +b.dataset.mk;
