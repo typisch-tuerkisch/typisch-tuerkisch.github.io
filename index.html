@@ -93,6 +93,10 @@
   .weiter .wu{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
 
   .weiter.kult .wt{font-size:16px;line-height:1.35}
+  .themerow{border-left:4px solid var(--line)}
+  .themerow .tt{flex:1;min-width:0;display:block}
+  .themerow .tt em{display:block;font-style:normal;font-size:13.5px;font-weight:700;
+                   color:var(--text);opacity:.78;line-height:1.4;margin:3px 0 4px}
   .weiter.wdh{border-left-color:var(--green)}
   .weiter.wdh .wk{color:var(--green-dark)}
   .wst{display:flex;gap:8px;margin:0 0 4px}
@@ -1973,7 +1977,7 @@ const POOL = [
   return out;
 });
 
-const BUILD = "30.10.2026";
+const BUILD = "31.10.2026";
 const CONTENT_VERSION = 2;   /* bei Umbau der Einheiten hochzählen */
 const LESSON_TARGET = 30;
 
@@ -3085,21 +3089,42 @@ function kulturScreen(){
       <h1>Kulturecke</h1>
       <p>Wie in der Türkei wirklich gelebt, gesprochen und geglaubt wird. Zum Lesen, in deinem Tempo.</p>
     </div>
+    ${(()=>{
+      const k = kulturHeute();
+      if(!k) return "";
+      const th = KULTUR[k.ti], c = th.cards[k.ci];
+      return `<button class="weiter kult" id="kmBtn2" style="border-left-color:${th.c}">
+        <span class="wk" style="color:${th.c}">Kulturmoment des Tages</span>
+        <span class="wt">${esc(c.q || c.h)}</span>
+        <span class="wu">${esc(th.t)}</span>
+      </button>`;
+    })()}
     ${m && KULTUR[m.t] ? `<div class="homebtns" style="padding-bottom:14px">
       <button id="cont" style="border-color:var(--gold);color:var(--gold)">${svgIcon("mark","mini")} Weiterlesen: ${esc(KULTUR[m.t].t)}</button>
     </div>` : ""}
     <div class="read" style="padding-top:0">
-      ${KULTUR.map((th,ti)=>`<button class="themerow" data-th="${ti}">
+      ${KULTUR.map((th,ti)=>{
+        const koeder = (th.cards.find(c=>c.q) || {}).q || "";
+        return `<button class="themerow" data-th="${ti}" style="border-left-color:${th.c}">
         <span class="ti" style="color:${th.c};background:${th.c}1a">${svgIcon(th.ic)}</span>
-        <span><b>${esc(th.t)}</b><small>${th.cards.length} Abschnitte</small></span>
+        <span class="tt"><b>${esc(th.t)}</b>
+          ${koeder ? `<em>${esc(koeder)}</em>` : ""}
+          <small>${th.cards.length} Abschnitte</small></span>
         ${m && m.t===ti ? `<span class="mk">${svgIcon("mark","mini")}</span>` : ""}
-      </button>`).join("")}
+      </button>`;}).join("")}
     </div>
     <div class="foot"><button class="cta ghost" id="back">Zurück zur Übersicht</button></div>`;
   document.getElementById("chip").onclick = profileSheet;
   document.getElementById("back").onclick = home;
   const c = document.getElementById("cont");
   if(c) c.onclick = () => kulturRead(m.t, m.c);
+  const k2 = document.getElementById("kmBtn2");
+  if(k2) k2.onclick = () => {
+    const k = kulturHeute();
+    if(!k) return;
+    S.kmTag = todayStr(); save();
+    kulturRead(k.ti, k.ci);
+  };
   app.querySelectorAll("[data-th]").forEach(b=>{ b.onclick = () => kulturRead(+b.dataset.th, null); });
 }
 
