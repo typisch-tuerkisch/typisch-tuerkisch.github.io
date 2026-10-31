@@ -2819,17 +2819,6 @@ function home(){
       </button>`;
     })()}
     ${(()=>{
-      const k = kulturHeute();
-      if(!k) return "";
-      const th = KULTUR[k.ti], c = th.cards[k.ci];
-      const gelesen = S.kmTag === todayStr();
-      return `<button class="weiter kult" id="kmBtn" style="border-left-color:${th.c}">
-        <span class="wk" style="color:${th.c}">Kulturmoment des Tages${gelesen ? ", gelesen" : ""}</span>
-        <span class="wt">${esc(c.q || c.h)}</span>
-        <span class="wu">${esc(th.t)}</span>
-      </button>`;
-    })()}
-    ${(()=>{
       const f = faellige().length;
       if(!f) return "";
       return `<button class="weiter wdh" id="wdhBtn">
@@ -2859,13 +2848,6 @@ function home(){
   if(wb) wb.onclick = () => { const n = naechsteOffene(); if(n >= 0) startLesson(n); };
   const wd = document.getElementById("wdhBtn");
   if(wd) wd.onclick = startWdh;
-  const km = document.getElementById("kmBtn");
-  if(km) km.onclick = () => {
-    const k = kulturHeute();
-    if(!k) return;
-    S.kmTag = todayStr(); save();
-    kulturRead(k.ti, k.ci);
-  };
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
 }
 
@@ -3094,7 +3076,7 @@ function kulturScreen(){
       if(!k) return "";
       const th = KULTUR[k.ti], c = th.cards[k.ci];
       return `<button class="weiter kult" id="kmBtn2" style="border-left-color:${th.c}">
-        <span class="wk" style="color:${th.c}">Kulturmoment des Tages</span>
+        <span class="wk" style="color:${th.c}">Kulturmoment des Tages${S.kmTag === todayStr() ? ", gelesen" : ""}</span>
         <span class="wt">${esc(c.q || c.h)}</span>
         <span class="wu">${esc(th.t)}</span>
       </button>`;
