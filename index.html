@@ -2955,57 +2955,98 @@ function topbar(){
 }
 
 /* ---------- 3b. PROFILE ---------- */
-function authScreen(mode){
-  const names = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL);
-  const isNew = mode === "new" || names.length === 0;
+/* Der Einstieg läuft über das Konto, nicht mehr über einen bloßen
+   Benutzernamen. Wer nur schauen will, kommt über die Probe hinein.
+   Alte Profile ohne Konto bleiben erreichbar, damit niemand
+   seinen Fortschritt verliert. */
+function authScreen(mode, hinweis){
+  if(mode === "new") return kontoScreen("neu");
+  const alte = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL
+                                           && String(k).indexOf("cloud_") !== 0);
+
   app.innerHTML = `<div class="auth">
     <img class="logo big" src="img/logo-256.png" alt="Typisch Türkisch">
     <h1 class="brand" style="text-align:center">Typisch <span class="tr">Türkisch</span></h1>
-    <p class="lead">${isNew
-      ? "Türkisch lernen und verstehen, wie in der Türkei wirklich gelebt wird. Leg ein Profil an, damit dein Fortschritt gespeichert bleibt."
-      : "Willkommen zurück. Wähle dein Profil."}</p>
+    <p class="lead">Türkisch lernen und verstehen, wie in der Türkei wirklich gelebt wird.</p>
 
-    ${(!isNew && names.length) ? `<div class="known">${names.map(k=>`
-        <button data-pick="${esc(k)}">
-          <span class="ava">${esc((USERS[k].name[0]||"?").toUpperCase())}</span>
-          <span><b>${esc(USERS[k].name)}</b><small>${USERS[k].data.done.length} Lektionen, ${USERS[k].data.xp} Çay</small></span>
-        </button>`).join("")}</div>` : ""}
+    <div class="field"><label>E-Mail</label>
+      <input id="mail" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="name@mail.de"></div>
+    <div class="field"><label>Passwort</label>
+      <input id="pw" type="password" autocomplete="current-password"></div>
+    <div class="err" id="e">${esc(hinweis || "")}</div>
+    <button class="cta" id="go">Anmelden</button>
 
-    ${isNew ? `
-      <div class="field"><label>Benutzername</label>
-        <input id="u" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="z.B. lena_b" maxlength="20"></div>
-      <div class="err" id="e"></div>
-      <button class="cta" id="go">Profil erstellen</button>
-      ${names.length ? `<div class="switchline">Schon ein Profil? <button id="toLogin">Anmelden</button></div>` : ""}
-    ` : `
-      <div class="switchline" style="margin-top:4px">Neu hier? <button id="toNew">Profil erstellen</button></div>
-    `}
+    <div class="switchline" style="margin-top:12px"><button id="vergessen">Passwort vergessen</button></div>
+    <div class="switchline" style="margin-top:16px">Noch kein Konto? <button id="toNew">Konto erstellen</button></div>
+    <div class="switchline" style="margin-top:16px"><button id="guest">Erst einmal ohne Profil hineinschauen</button></div>
 
-    <div class="switchline" style="margin-top:20px"><button id="kto">Mit Konto anmelden, auf allen Geräten</button></div>
-    <div class="switchline" style="margin-top:10px"><button id="rechtlink">Impressum und Datenschutz</button></div>
-    <div class="switchline" style="margin-top:10px"><button id="guest">Erst einmal ohne Profil hineinschauen</button></div>
+    ${alte.length ? `<div class="switchline" style="margin-top:24px">
+      <button id="toAlt">Auf diesem Gerät gibt es ${alte.length === 1 ? "ein Profil" : alte.length + " Profile"} ohne Konto</button></div>` : ""}
+
+    <div class="switchline" style="margin-top:16px"><button id="rechtlink">Impressum und Datenschutz</button></div>
   </div>`;
 
   const g = id => document.getElementById(id);
-  if(g("go")) g("go").onclick = () => {
-    const name = (g("u").value||"").trim();
-    if(name.length < 2){ g("e").textContent = "Bitte einen Namen mit mindestens zwei Zeichen."; return; }
-    if(USERS[slug(name)]){ g("e").textContent = "Diesen Namen gibt es auf diesem Gerät schon."; return; }
-    USERS[slug(name)] = { name, pin: "", data: fresh() };
-    ACTIVE = slug(name); S = USERS[ACTIVE].data;
-    saveAll(); enterApp();
-  };
-  if(g("toLogin")) g("toLogin").onclick = () => authScreen("login");
-  if(g("toNew")) g("toNew").onclick = () => authScreen("new");
-  if(g("kto")) g("kto").onclick = () => kontoScreen();
-  if(g("rechtlink")) g("rechtlink").onclick = () => rechtScreen("impressum");
-  if(g("guest")) g("guest").onclick = () => {
-    /* Probe: nur im Arbeitsspeicher, nichts wird abgelegt. */
+  g("toNew").onclick = () => kontoScreen("neu");
+  g("rechtlink").onclick = () => rechtScreen("impressum");
+  g("guest").onclick = () => {
     ACTIVE = PROBE_SCHL; S = fresh(); S.tourSeen = true;
     try{ localStorage.removeItem(AKEY); }catch(e){}
     enterApp();
   };
-  app.querySelectorAll("[data-pick]").forEach(b=>{
+  if(g("toAlt")) g("toAlt").onclick = () => alteProfile();
+
+  g("vergessen").onclick = async () => {
+    const mail = (g("mail").value || "").trim();
+    if(!mail){ g("e").textContent = "Trag zuerst deine E-Mail ein."; return; }
+    await wolkeLaden();
+    if(!wolkeDa()){ g("e").textContent = "Keine Verbindung. Versuch es später noch einmal."; return; }
+    try{
+      await CLOUD.passwortMail(mail);
+      g("e").style.color = "var(--green-dark)";
+      g("e").textContent = "Wir haben dir eine E-Mail geschickt.";
+    }catch(err){ g("e").textContent = kontoFehler(err); }
+  };
+
+  g("go").onclick = async () => {
+    const mail = (g("mail").value || "").trim(), pw = g("pw").value || "";
+    if(!mail || mail.indexOf("@") < 0){ g("e").textContent = "Bitte eine gültige E-Mail eintragen."; return; }
+    if(!pw){ g("e").textContent = "Bitte dein Passwort eintragen."; return; }
+    g("go").disabled = true; g("go").textContent = "Wird angemeldet";
+    await wolkeLaden();
+    if(!wolkeDa()){
+      g("go").disabled = false; g("go").textContent = "Anmelden";
+      g("e").textContent = "Keine Verbindung zum Server. Ohne Netz kannst du unten ohne Profil hineinschauen.";
+      return;
+    }
+    try{
+      const r = await CLOUD.anmelden(mail, pw);
+      await kontoVerbinden(r.user);
+      enterApp();
+    }catch(err){
+      g("go").disabled = false; g("go").textContent = "Anmelden";
+      g("e").textContent = kontoFehler(err);
+    }
+  };
+}
+
+/* Profile aus der Zeit vor den Konten */
+function alteProfile(){
+  const alte = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL
+                                           && String(k).indexOf("cloud_") !== 0);
+  app.innerHTML = `<div class="auth">
+    <h1 class="brand" style="text-align:center">Profile auf diesem Gerät</h1>
+    <p class="lead">Diese Profile liegen nur hier und sind an kein Konto gebunden.
+    Wenn du dir ein Konto anlegst, während ein Profil geöffnet ist, nimmt das Konto den Fortschritt mit.</p>
+    <div class="known">${alte.map(k => `
+      <button data-pick="${esc(k)}">
+        <span class="ava">${esc((USERS[k].name[0] || "?").toUpperCase())}</span>
+        <span><b>${esc(USERS[k].name)}</b><small>${USERS[k].data.done.length} Lektionen, ${USERS[k].data.xp} Çay</small></span>
+      </button>`).join("")}</div>
+    <div class="switchline" style="margin-top:18px"><button id="zurueck">Zurück zur Anmeldung</button></div>
+  </div>`;
+  document.getElementById("zurueck").onclick = () => authScreen("login");
+  app.querySelectorAll("[data-pick]").forEach(b => {
     b.onclick = () => pinScreen(b.dataset.pick);
   });
 }
