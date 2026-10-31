@@ -93,6 +93,7 @@
   .weiter .wu{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-top:3px}
 
   .weiter.kult .wt{font-size:16px;line-height:1.35}
+  .kstand{font-size:14px;font-weight:700;color:var(--muted);padding:2px 0 2px}
   .kzahl{margin-top:8px;font-size:13px;font-weight:800;color:var(--green-dark)}
   .sq{margin:16px 0 4px;background:var(--red-soft);border-radius:14px;padding:14px}
   .sqk{font-size:10.5px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;
@@ -2272,6 +2273,113 @@ function unlockAll(d){
   }));
   if(!d.xp) d.xp = 1500;
 }
+
+/* ---------- 2b. KONTO UND ABGLEICH ----------
+   Der Fortschritt bleibt zuerst auf dem Gerät. Wer ein Konto hat,
+   bekommt ihn zusätzlich in die Wolke und auf jedes andere Gerät.
+   Zusammengeführt wird nie durch Überschreiben, sondern Feld für
+   Feld, damit nichts verloren geht. */
+let KONTO = null, syncZeit = null, syncLaeuft = false, syncStand = "";
+
+/* Diese Werte gehören zum Gerät, nicht zum Konto. */
+const GERAET_FELDER = ["klang","kVol","sVol","sound","voice","amb","musik","mVol","openUnits"];
+
+const wolkeDa = () => !!(window.CLOUD && window.CLOUD.da);
+const hoch    = (a,b) => Math.max(a || 0, b || 0);
+const vereine = (a,b) => [...new Set([...(a || []), ...(b || [])])];
+
+function wortBesser(x, y){
+  if(!x) return y;
+  if(!y) return x;
+  if((x.b || 0) !== (y.b || 0)) return (x.b || 0) > (y.b || 0) ? x : y;
+  if((x.dz || 0) !== (y.dz || 0)) return (x.dz || 0) > (y.dz || 0) ? x : y;
+  return (x.due || "") >= (y.due || "") ? x : y;
+}
+
+function verschmelzen(lokal, fern){
+  if(!fern) return lokal;
+  const m = Object.assign({}, fern, lokal);
+  m.done      = vereine(lokal.done, fern.done);
+  m.passed    = vereine(lokal.passed, fern.passed);
+  m.bonusDone = vereine(lokal.bonusDone, fern.bonusDone);
+  m.saved     = vereine(lokal.saved, fern.saved);
+  m.kg = Object.assign({}, fern.kg || {}, lokal.kg || {});
+  m.kr = Object.assign({}, fern.kr || {}, lokal.kr || {});
+  m.xp     = hoch(lokal.xp, fern.xp);
+  m.streak = hoch(lokal.streak, fern.streak);
+  m.pro      = !!(lokal.pro || fern.pro);
+  m.tourSeen = !!(lokal.tourSeen || fern.tourSeen);
+  m.preview  = !!(lokal.preview || fern.preview);
+  m.kmTag = (lokal.kmTag || "") >= (fern.kmTag || "") ? lokal.kmTag : fern.kmTag;
+
+  m.ueb = Object.assign({}, fern.ueb || {});
+  Object.keys(lokal.ueb || {}).forEach(k=>{
+    const a = lokal.ueb[k], b = m.ueb[k];
+    if(!b || (a.tag || "") >= (b.tag || "")) m.ueb[k] = a;
+  });
+
+  m.w = Object.assign({}, fern.w || {});
+  Object.keys(lokal.w || {}).forEach(k=>{ m.w[k] = wortBesser(lokal.w[k], m.w[k]); });
+
+  /* Der jüngere Tag bringt seinen Tageszähler mit. */
+  if((fern.lastDay || "") > (lokal.lastDay || "")){
+    m.lastDay = fern.lastDay; m.dayXp = fern.dayXp;
+  }
+  GERAET_FELDER.forEach(f=>{ if(lokal[f] !== undefined) m[f] = lokal[f]; });
+  return m;
+}
+
+function wolkeBald(){
+  if(!KONTO || !wolkeDa()) return;
+  clearTimeout(syncZeit);
+  syncZeit = setTimeout(wolkeSchreiben, 2500);
+}
+
+async function wolkeSchreiben(){
+  if(!KONTO || !wolkeDa() || syncLaeuft) return;
+  syncLaeuft = true;
+  try{
+    const daten = Object.assign({}, S, { stand: Date.now() });
+    delete daten.preview;
+    await CLOUD.speichern(KONTO.uid, daten);
+    syncStand = "ok";
+  }catch(e){ syncStand = "offen"; }
+  syncLaeuft = false;
+}
+
+async function wolkeHolen(){
+  if(!KONTO || !wolkeDa()) return false;
+  try{
+    const fern = await CLOUD.laden(KONTO.uid);
+    S = Object.assign(fresh(), verschmelzen(S, fern));
+    if(ACTIVE && USERS[ACTIVE]) USERS[ACTIVE].data = S;
+    saveAll();
+    await wolkeSchreiben();
+    return true;
+  }catch(e){ syncStand = "offen"; return false; }
+}
+
+async function kontoVerbinden(u){
+  KONTO = u || null;
+  if(!u) return;
+  const schluessel = "cloud_" + u.uid;
+  if(!USERS[schluessel]){
+    /* Beim ersten Anmelden nimmt das Konto den Fortschritt mit,
+       der gerade auf diesem Gerät offen war. */
+    USERS[schluessel] = {
+      name: (u.email || "Konto").split("@")[0],
+      pin: "", cloud: u.uid, data: Object.assign({}, S)
+    };
+  }
+  ACTIVE = schluessel;
+  S = Object.assign(fresh(), USERS[schluessel].data);
+  saveAll();
+  await wolkeHolen();
+}
+
+/* Wenn das Netz zurückkommt, nachtragen. */
+try{ window.addEventListener("online", () => { if(KONTO) wolkeSchreiben(); }); }catch(e){}
+
 function saveAll(){
   try{
     if(ACTIVE && USERS[ACTIVE]) USERS[ACTIVE].data = S;
@@ -2302,7 +2410,7 @@ function rollDay(){
 }
 rollDay();
 
-function save(){ saveAll(); }
+function save(){ saveAll(); wolkeBald(); }
 
 function addXp(n){
   const t = todayStr();
@@ -2697,7 +2805,8 @@ function authScreen(mode){
       <div class="switchline" style="margin-top:4px">Neu hier? <button id="toNew">Profil erstellen</button></div>
     `}
 
-    <div class="switchline" style="margin-top:22px"><button id="guest">Ohne Profil weiterlernen</button></div>
+    <div class="switchline" style="margin-top:20px"><button id="kto">Mit Konto anmelden, auf allen Geräten</button></div>
+    <div class="switchline" style="margin-top:10px"><button id="guest">Ohne Profil weiterlernen</button></div>
   </div>`;
 
   const g = id => document.getElementById(id);
@@ -2711,6 +2820,7 @@ function authScreen(mode){
   };
   if(g("toLogin")) g("toLogin").onclick = () => authScreen("login");
   if(g("toNew")) g("toNew").onclick = () => authScreen("new");
+  if(g("kto")) g("kto").onclick = () => kontoScreen();
   if(g("guest")) g("guest").onclick = () => {
     if(!USERS["__gast"]) USERS["__gast"] = {name:"Gast", pin:"", data:fresh()};
     ACTIVE = "__gast"; S = USERS[ACTIVE].data; saveAll(); enterApp();
@@ -2763,6 +2873,7 @@ function profileSheet(){
     <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?svgIcon("mic","mini"):svgIcon("mute","mini")}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
     <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>
     <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
+    <button class="row" id="konto"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>${KONTO ? "Konto: " + esc(KONTO.email || "") : "Konto, auf allen Geräten"}</span></button>
     <button class="row" id="merk"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Merkliste, ${S.saved.length}</span></button>
     <button class="row" id="tour"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("route","mini")}</span><span>Rundgang noch einmal ansehen</span></button>
     <button class="row" data-sw="__new__"><span class="ava sm">+</span><span>Neues Profil</span></button>
@@ -2793,6 +2904,7 @@ function profileSheet(){
   el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
   el.querySelector("#merk").onclick = () => { kill(); savedScreen(); };
+  el.querySelector("#konto").onclick = () => { kill(); kontoScreen(); };
   el.querySelector("#out").onclick = () => { saveAll(); ACTIVE = null; S = fresh(); saveAll(); kill(); authScreen("login"); };
   el.querySelectorAll("[data-sw]").forEach(b=>{
     b.onclick = () => {
@@ -2853,6 +2965,116 @@ function tourScreen(i){
   const sk = document.getElementById("skip");
   if(sk) sk.onclick = done;
   document.getElementById("next").onclick = () => { if(last) done(); else tourScreen(i + 1); };
+}
+
+
+/* ---------- 3b2. KONTOBILDSCHIRM ---------- */
+function kontoScreen(modus, hinweis){
+  const m = modus || (KONTO ? "stand" : "anmelden");
+  if(!wolkeDa()){
+    app.innerHTML = topbar() + `<div class="auth">
+      <h1 class="brand">Konto</h1>
+      <p class="lead">Die Verbindung zum Server lässt sich gerade nicht aufbauen. Dein Fortschritt bleibt auf diesem Gerät gespeichert und geht nicht verloren. Versuch es später noch einmal.</p>
+      <button class="cta ghost" id="back">Zurück</button>
+    </div>`;
+    document.getElementById("back").onclick = home;
+    document.getElementById("chip").onclick = profileSheet;
+    return;
+  }
+
+  if(m === "stand" && KONTO){
+    app.innerHTML = topbar() + `<div class="auth">
+      <h1 class="brand">Dein Konto</h1>
+      <p class="lead">Angemeldet als <b>${esc(KONTO.email || "")}</b>. Dein Fortschritt wird gesichert und steht auf jedem Gerät zur Verfügung, auf dem du dich anmeldest.</p>
+      <div class="field" style="margin-top:4px">
+        <label>Letzter Abgleich</label>
+        <div class="kstand">${syncStand === "ok" ? "Alles gesichert" : (syncStand === "offen" ? "Noch nicht übertragen, wird nachgeholt" : "Noch nichts übertragen")}</div>
+      </div>
+      <button class="cta" id="jetzt">Jetzt abgleichen</button>
+      <div class="err" id="e">${esc(hinweis || "")}</div>
+      <div class="switchline" style="margin-top:18px"><button id="raus">Abmelden</button></div>
+      <div class="switchline" style="margin-top:10px"><button id="back">Zurück</button></div>
+    </div>`;
+    const g = id => document.getElementById(id);
+    g("chip").onclick = profileSheet;
+    g("back").onclick = home;
+    g("jetzt").onclick = async () => {
+      g("jetzt").disabled = true; g("jetzt").textContent = "Wird abgeglichen";
+      const ok = await wolkeHolen();
+      kontoScreen("stand", ok ? "" : "Das hat nicht geklappt. Bist du online?");
+    };
+    g("raus").onclick = async () => {
+      try{ await CLOUD.abmelden(); }catch(e){}
+      KONTO = null; syncStand = "";
+      ACTIVE = null; S = fresh(); saveAll();
+      authScreen("login");
+    };
+    return;
+  }
+
+  const neu = m === "neu";
+  app.innerHTML = topbar() + `<div class="auth">
+    <h1 class="brand">${neu ? "Konto erstellen" : "Anmelden"}</h1>
+    <p class="lead">${neu
+      ? "Mit einem Konto liegt dein Fortschritt nicht nur auf diesem Gerät. Wechselst du das Handy, ist alles wieder da."
+      : "Melde dich an, dann holt die App deinen Fortschritt zurück."}</p>
+    <div class="field"><label>E-Mail</label>
+      <input id="mail" type="email" autocomplete="email" autocapitalize="none" spellcheck="false" placeholder="name@mail.de"></div>
+    <div class="field"><label>Passwort${neu ? ", mindestens sechs Zeichen" : ""}</label>
+      <input id="pw" type="password" autocomplete="${neu ? "new-password" : "current-password"}"></div>
+    <div class="err" id="e">${esc(hinweis || "")}</div>
+    <button class="cta" id="go">${neu ? "Konto erstellen" : "Anmelden"}</button>
+    <div class="switchline" style="margin-top:14px">
+      ${neu ? `Schon ein Konto? <button id="um">Anmelden</button>`
+            : `Noch kein Konto? <button id="um">Konto erstellen</button>`}
+    </div>
+    ${neu ? "" : `<div class="switchline" style="margin-top:10px"><button id="vergessen">Passwort vergessen</button></div>`}
+    <div class="switchline" style="margin-top:18px"><button id="back">Ohne Konto weiter</button></div>
+  </div>`;
+
+  const g = id => document.getElementById(id);
+  g("chip").onclick = profileSheet;
+  g("back").onclick = () => { if(ACTIVE && USERS[ACTIVE]) home(); else authScreen("login"); };
+  g("um").onclick = () => kontoScreen(neu ? "anmelden" : "neu");
+  const vg = g("vergessen");
+  if(vg) vg.onclick = async () => {
+    const mail = (g("mail").value || "").trim();
+    if(!mail){ g("e").textContent = "Trag zuerst deine E-Mail ein."; return; }
+    try{
+      await CLOUD.passwortMail(mail);
+      g("e").style.color = "var(--green-dark)";
+      g("e").textContent = "Wir haben dir eine E-Mail geschickt.";
+    }catch(err){ g("e").textContent = kontoFehler(err); }
+  };
+  g("go").onclick = async () => {
+    const mail = (g("mail").value || "").trim();
+    const pw   = g("pw").value || "";
+    if(!mail || mail.indexOf("@") < 0){ g("e").textContent = "Bitte eine gültige E-Mail eintragen."; return; }
+    if(pw.length < 6){ g("e").textContent = "Das Passwort braucht mindestens sechs Zeichen."; return; }
+    g("go").disabled = true;
+    g("go").textContent = neu ? "Wird erstellt" : "Wird angemeldet";
+    try{
+      const r = neu ? await CLOUD.registrieren(mail, pw) : await CLOUD.anmelden(mail, pw);
+      await kontoVerbinden(r.user);
+      enterApp();
+    }catch(err){
+      g("go").disabled = false;
+      g("go").textContent = neu ? "Konto erstellen" : "Anmelden";
+      g("e").textContent = kontoFehler(err);
+    }
+  };
+}
+
+function kontoFehler(err){
+  const c = (err && err.code) || "";
+  if(c.indexOf("email-already-in-use") >= 0) return "Zu dieser E-Mail gibt es schon ein Konto. Melde dich an.";
+  if(c.indexOf("invalid-email") >= 0)        return "Diese E-Mail sieht nicht richtig aus.";
+  if(c.indexOf("weak-password") >= 0)        return "Das Passwort ist zu kurz.";
+  if(c.indexOf("user-not-found") >= 0 || c.indexOf("invalid-credential") >= 0 || c.indexOf("wrong-password") >= 0)
+    return "E-Mail oder Passwort stimmt nicht.";
+  if(c.indexOf("too-many-requests") >= 0)    return "Zu viele Versuche. Warte einen Moment.";
+  if(c.indexOf("network") >= 0)              return "Keine Verbindung. Bist du online?";
+  return "Das hat nicht geklappt. Versuch es noch einmal.";
 }
 
 /* ---------- 3c. PREMIUM-SPERRE ---------- */
@@ -3269,9 +3491,12 @@ function kulturHeute(tag){
   const offen = alle.filter(a => !kFertig(a.ti, a.ci));
   const quelle = offen.length ? offen : alle;
   const t = tag || todayStr();
-  let x = 0;
-  for(let i = 0; i < t.length; i++) x = (x * 31 + t.charCodeAt(i)) >>> 0;
-  return quelle[x % quelle.length];
+  /* Tage durchzaehlen statt Zufall: so wiederholt sich nichts,
+     bevor alles einmal dran war. */
+  const tage = Math.floor((new Date(t + "T00:00:00").getTime()
+                           - new Date("2026-01-01T00:00:00").getTime()) / 86400000);
+  const n = ((tage % quelle.length) + quelle.length) % quelle.length;
+  return quelle[n];
 }
 
 function kulturScreen(){
@@ -3963,6 +4188,22 @@ function boot(){
   if(ACTIVE && USERS[ACTIVE]) home(); else authScreen("login");
 }
 
+/* Wenn Firebase geladen ist und schon jemand angemeldet war,
+   wird der Fortschritt im Hintergrund geholt. */
+function wolkeStarten(){
+  if(!wolkeDa()) return;
+  CLOUD.beobachten(async u => {
+    if(!u){ KONTO = null; return; }
+    if(KONTO && KONTO.uid === u.uid) return;
+    await kontoVerbinden(u);
+    if(app && app.innerHTML && document.querySelector(".path")) home();
+  });
+}
+try{
+  if(window.CLOUD) wolkeStarten();
+  else window.addEventListener("cloud-bereit", wolkeStarten, { once:true });
+}catch(e){}
+
 
 /* ---------- 4b. FORTSCHRITT ----------
    Ehrliche Zahlen statt Abzeichen: wie viele Wörter wirklich
@@ -4437,6 +4678,47 @@ try{
     if((location.hash || "").toLowerCase() === "#alles") boot();
   });
 }catch(e){}
+</script>
+<script type="module">
+/* ---------- WOLKE ----------
+   Firebase wird erst hier geladen. Klappt es nicht, etwa ohne Netz
+   oder wenn gstatic blockiert ist, läuft die App unverändert weiter,
+   nur eben ohne Abgleich. */
+const CFG = {
+  apiKey: "AIzaSyDBt37iR5RVWgKzw_JhAq4R3I94ZSFJG5s",
+  authDomain: "typisch-tuerkisch.firebaseapp.com",
+  projectId: "typisch-tuerkisch",
+  storageBucket: "typisch-tuerkisch.firebasestorage.app",
+  messagingSenderId: "1023810907470",
+  appId: "1:1023810907470:web:7a7b5ce6fd0c91a221821f"
+};
+const V = "12.2.1", B = "https://www.gstatic.com/firebasejs/" + V + "/";
+try{
+  if(window.CLOUD) throw { schonDa:true };
+  const { initializeApp } = await import(B + "firebase-app.js");
+  const A = await import(B + "firebase-auth.js");
+  const F = await import(B + "firebase-firestore.js");
+  const app  = initializeApp(CFG);
+  const auth = A.getAuth(app);
+  const db   = F.getFirestore(app);
+  try{ await A.setPersistence(auth, A.browserLocalPersistence); }catch(e){}
+  window.CLOUD = {
+    da: true,
+    beobachten:   cb => A.onAuthStateChanged(auth, cb),
+    registrieren: (mail, pw) => A.createUserWithEmailAndPassword(auth, mail, pw),
+    anmelden:     (mail, pw) => A.signInWithEmailAndPassword(auth, mail, pw),
+    abmelden:     () => A.signOut(auth),
+    passwortMail: mail => A.sendPasswordResetEmail(auth, mail),
+    laden: async uid => {
+      const d = await F.getDoc(F.doc(db, "nutzer", uid));
+      return d.exists() ? d.data() : null;
+    },
+    speichern: (uid, daten) => F.setDoc(F.doc(db, "nutzer", uid), daten)
+  };
+}catch(e){
+  if(!(e && e.schonDa)) window.CLOUD = { da: false, fehler: String((e && e.message) || e) };
+}
+try{ window.dispatchEvent(new Event("cloud-bereit")); }catch(e){}
 </script>
 </body>
 </html>
