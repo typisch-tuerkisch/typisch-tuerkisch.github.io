@@ -480,6 +480,25 @@
   .empty{text-align:center;color:var(--muted);font-size:14.5px;font-weight:700;line-height:1.6;padding:40px 10px}
 
   /* ---------- Hörecke ---------- */
+  /* Hörecke */
+  .hmodi{padding-bottom:10px}
+  .tempo{display:flex;gap:8px;padding:0 18px 14px}
+  .tempo button{
+    flex:1;background:var(--surface);border:2px solid var(--line);border-radius:12px;
+    padding:9px 6px;font-size:13px;font-weight:800;color:var(--muted);
+  }
+  .tempo button.on{background:#eaf4fb;border-color:var(--nazar);color:var(--text)}
+  .dlgbox{padding:2px 16px 8px;display:flex;flex-direction:column;gap:10px}
+  .dz{
+    background:var(--surface);border:2px solid var(--line);border-radius:16px;
+    padding:11px 14px;max-width:88%;cursor:pointer;transition:border-color .12s,background .12s;
+  }
+  .dz.a{align-self:flex-end;border-bottom-right-radius:5px}
+  .dz.b{align-self:flex-start;border-bottom-left-radius:5px;background:var(--surface-2)}
+  .dz.jetzt{border-color:var(--nazar);background:#eaf4fb}
+  .dz .wer{font-size:11px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .dz .ztr{margin:3px 0 0;font-size:16.5px;font-weight:800;line-height:1.35}
+  .dz .zde{margin:3px 0 0;font-size:14px;font-weight:700;color:var(--muted);line-height:1.35}
   .chips{display:flex;gap:8px;overflow-x:auto;padding:0 18px 14px;-webkit-overflow-scrolling:touch}
   .chips::-webkit-scrollbar{display:none}
   .chips button{
@@ -2249,7 +2268,8 @@ const todayStr = () => new Date().toISOString().slice(0,10);
 
 const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},kg:{},kr:{},klang:"wald",kVol:25,sVol:70,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
-                      mark:null, amb:null, openUnits:null, tourSeen:false, nick:null, cv:CONTENT_VERSION});
+                      mark:null, amb:null, openUnits:null, tourSeen:false, nick:null,
+                      hTempo:1, hMode:"spr", hd:{}, cv:CONTENT_VERSION});
 
 let USERS = {}, ACTIVE = null, S = fresh();
 
@@ -2715,20 +2735,24 @@ try{
   else ttsOk = false;
 }catch(e){ ttsOk = false; }
 
-function speak(text, lang, cb){
+function speak(text, lang, cb, opt){
   try{
     if(!window.speechSynthesis){ cb && cb(); return; }
     /* Türkisch niemals mit einer deutschen Stimme vorlesen:
        das würde eine falsche Aussprache antrainieren. */
     if(lang !== "de" && !trVoice){ cb && cb(); return; }
     const u = new SpeechSynthesisUtterance(text);
+    const f = tempoFaktor();
     if(lang === "de"){ u.lang = "de-DE"; if(deVoice) u.voice = deVoice; u.rate = .95; }
-    else { u.lang = "tr-TR"; if(trVoice) u.voice = trVoice; u.rate = .82; }
+    else { u.lang = "tr-TR"; if(trVoice) u.voice = trVoice; u.rate = .82 * f; }
+    if(opt && opt.pitch) u.pitch = opt.pitch;
     u.onend = () => cb && cb();
     u.onerror = () => cb && cb();
     speechSynthesis.speak(u);
   }catch(e){ cb && cb(); }
 }
+const TEMPI = [[0.72,"langsam"],[1,"normal"],[1.2,"zügig"]];
+const tempoFaktor = () => (S && S.hTempo) ? S.hTempo : 1;
 function say(text, lang, cb){
   try{ speechSynthesis.cancel(); }catch(e){}
   speak(text, lang || "tr", cb);
@@ -2745,13 +2769,13 @@ function stopClip(){
   try{ if(curAudio){ curAudio.pause(); curAudio = null; } }catch(e){}
   try{ speechSynthesis.cancel(); }catch(e){}
 }
-function playClip(key, text, lang, cb){
+function playClip(key, text, lang, cb, opt){
   const src = AUDIO[key];
   if(src){
     try{
       curAudio = new Audio(src);
       curAudio.onended = () => cb && cb();
-      curAudio.onerror = () => speak(text, lang, cb);
+      curAudio.onerror = () => speak(text, lang, cb, opt);
       const pr = curAudio.play();
       if(pr && pr.catch) pr.catch(()=>speak(text, lang, cb));
       return;
@@ -4225,6 +4249,709 @@ function vstResult(){
   if(alle) konfetti(false);
 }
 
+/* Dialoge für die Hörecke.
+   w:"A" ist die lernende Person, w:"B" das Gegenüber.
+   tr = gesprochenes Türkisch, de = Bedeutung auf Deutsch. */
+const DIALOG = [
+
+{ t:"Beim Bakkal", s:"Der Laden an der Ecke", ic:"shop", c:"#2f7fd4",
+  o:"Du gehst in den kleinen Laden unten im Haus. Der Bakkal räumt gerade ein Regal ein.",
+  z:[
+    {w:"A", tr:"Kolay gelsin.", de:"Gute Arbeit."},
+    {w:"B", tr:"Sağ ol. Buyurun, ne vereyim?", de:"Danke. Bitte, was darf ich dir geben?"},
+    {w:"A", tr:"Bir ekmek, bir de yarım kilo domates alayım.", de:"Ich nehme ein Brot und ein halbes Kilo Tomaten."},
+    {w:"B", tr:"Domatesler bugün çok güzel, taze geldi.", de:"Die Tomaten sind heute sehr gut, sie sind frisch gekommen."},
+    {w:"A", tr:"Ne kadar oldu?", de:"Wie viel macht das?"},
+    {w:"B", tr:"Seksen lira.", de:"Achtzig Lira."},
+    {w:"A", tr:"Buyurun. Kolay gelsin, iyi günler.", de:"Bitte sehr. Gute Arbeit, schönen Tag."},
+    {w:"B", tr:"Güle güle, yine bekleriz.", de:"Tschüss, wir warten wieder auf dich."}
+  ],
+  f:[
+    {q:"Womit grüßt man jemanden, der gerade arbeitet?", o:["Kolay gelsin","Afiyet olsun","Geçmiş olsun"], r:0,
+     w:"Kolay gelsin heißt wörtlich möge es leicht kommen und gilt jedem, der bei der Arbeit ist."},
+    {q:"Was kauft die Kundin?", o:["Brot und Tomaten","Brot und Käse","Tee und Zucker"], r:0,
+     w:"Ekmek ist Brot, domates sind Tomaten."}
+  ],
+  tip:"Yine bekleriz sagt fast jeder Händler beim Hinausgehen. Es ist keine Floskel, die eine Antwort braucht, ein Nicken genügt." },
+
+{ t:"Im Taxi", s:"Ansagen, wohin es geht", ic:"car", c:"#e8a33d",
+  o:"Du steigst in Izmir in ein Taxi und willst an die Uferpromenade.",
+  z:[
+    {w:"A", tr:"Merhaba, Kordon'a gidecektim.", de:"Hallo, ich wollte zum Kordon."},
+    {w:"B", tr:"Tabii, buyurun. Neresinde ineceksiniz?", de:"Klar, steigen Sie ein. Wo genau steigen Sie aus?"},
+    {w:"A", tr:"Saat kulesinin oralarda bir yerde.", de:"Irgendwo in der Nähe des Uhrturms."},
+    {w:"B", tr:"Anladım. Trafik biraz yoğun, yirmi dakika sürer.", de:"Verstanden. Der Verkehr ist etwas dicht, es dauert zwanzig Minuten."},
+    {w:"A", tr:"Sorun değil, acelem yok.", de:"Kein Problem, ich habe es nicht eilig."},
+    {w:"B", tr:"Burada mı inersiniz?", de:"Steigen Sie hier aus?"},
+    {w:"A", tr:"Evet, burası iyi. Ne kadar?", de:"Ja, hier ist gut. Wie viel?"},
+    {w:"B", tr:"Yüz otuz lira.", de:"Hundertdreißig Lira."},
+    {w:"A", tr:"Buyurun, üstü kalsın.", de:"Bitte sehr, stimmt so."}
+  ],
+  f:[
+    {q:"Wie lange dauert die Fahrt laut dem Fahrer?", o:["Zwanzig Minuten","Zehn Minuten","Eine Stunde"], r:0,
+     w:"Yirmi dakika sürer, es dauert zwanzig Minuten."},
+    {q:"Was heißt üstü kalsın?", o:["Stimmt so","Halten Sie bitte an","Es ist zu teuer"], r:0,
+     w:"Wörtlich möge das Obere bleiben, also das Wechselgeld behalten."}
+  ],
+  tip:"Gidecektim klingt höflicher als gideceğim. Diese Vergangenheitsform nimmt der Bitte die Schärfe." },
+
+{ t:"Im Çaybahçe", s:"Tee bestellen und sitzen bleiben", ic:"tea", c:"#cf5230",
+  o:"Du setzt dich in einen Teegarten am Wasser.",
+  z:[
+    {w:"B", tr:"Hoş geldiniz, ne alırsınız?", de:"Willkommen, was nehmen Sie?"},
+    {w:"A", tr:"Hoş bulduk. Bir çay lütfen.", de:"Danke. Einen Tee bitte."},
+    {w:"B", tr:"Açık mı olsun, demli mi?", de:"Soll er hell sein oder stark?"},
+    {w:"A", tr:"Demli olsun.", de:"Stark bitte."},
+    {w:"B", tr:"Hemen geliyor.", de:"Kommt sofort."},
+    {w:"A", tr:"Bir de bardak su alabilir miyim?", de:"Könnte ich auch ein Glas Wasser haben?"},
+    {w:"B", tr:"Tabii, su ikram.", de:"Natürlich, das Wasser geht aufs Haus."},
+    {w:"A", tr:"Çok teşekkürler.", de:"Vielen Dank."}
+  ],
+  f:[
+    {q:"Was fragt der Kellner zum Tee?", o:["Hell oder stark","Mit oder ohne Zucker","Groß oder klein"], r:0,
+     w:"Açık ist hell und dünn, demli ist dunkel und stark gezogen."},
+    {q:"Was antwortet man auf Hoş geldiniz?", o:["Hoş bulduk","Güle güle","Afiyet olsun"], r:0,
+     w:"Hoş bulduk ist die feste Antwort, wörtlich wir haben es schön vorgefunden."},
+  ],
+  tip:"Ein Glas Wasser zum Tee kommt fast überall ungefragt dazu und wird nicht berechnet." },
+
+{ t:"Auf dem Pazar", s:"Markt, Mengen, Preise", ic:"shop", c:"#2f9e6a",
+  o:"Dienstags ist Markt. Du stehst vor einem Stand mit Obst.",
+  z:[
+    {w:"B", tr:"Gel abla gel, çilek var, kiraz var.", de:"Komm, Schwester, komm, es gibt Erdbeeren und Kirschen."},
+    {w:"A", tr:"Çilek kaça?", de:"Was kosten die Erdbeeren?"},
+    {w:"B", tr:"Kilosu kırk lira, bal gibi.", de:"Das Kilo vierzig Lira, süß wie Honig."},
+    {w:"A", tr:"Bir kilo alayım. Kirazdan da yarım kilo.", de:"Ich nehme ein Kilo. Und ein halbes Kilo Kirschen."},
+    {w:"B", tr:"Başka bir arzunuz?", de:"Noch einen Wunsch?"},
+    {w:"A", tr:"Yok, bu kadar. Hepsi ne kadar?", de:"Nein, das ist alles. Was macht alles zusammen?"},
+    {w:"B", tr:"Yetmiş beş olsun, sana yuvarladım.", de:"Sagen wir fünfundsiebzig, ich habe für dich abgerundet."},
+    {w:"A", tr:"Eline sağlık, kolay gelsin.", de:"Danke dir, gute Arbeit."}
+  ],
+  f:[
+    {q:"Was kostet ein Kilo Erdbeeren?", o:["Vierzig Lira","Fünfundsiebzig Lira","Zwanzig Lira"], r:0,
+     w:"Kilosu kırk lira, das Kilo vierzig Lira."},
+    {q:"Was bedeutet sana yuvarladım?", o:["Ich habe für dich abgerundet","Ich habe dir mehr gegeben","Ich habe mich verrechnet"], r:0,
+     w:"Yuvarlamak heißt runden. Händler runden gern zugunsten der Kundschaft."}
+  ],
+  tip:"Abla und abi, Schwester und Bruder, sind auf dem Markt normale Anreden an Fremde und völlig höflich." },
+
+{ t:"Die Nachbarin an der Tür", s:"Teller, Einladung, Höflichkeit", ic:"door", c:"#8a5cd6",
+  o:"Es klingelt. Die Nachbarin steht mit einem Teller vor der Tür.",
+  z:[
+    {w:"B", tr:"Kusura bakma, rahatsız ettim. Börek yaptım, sıcacık.", de:"Entschuldige die Störung. Ich habe Börek gemacht, ganz warm."},
+    {w:"A", tr:"Aa, ne güzel. Zahmet etmişsin.", de:"Oh, wie schön. Du hast dir Mühe gemacht."},
+    {w:"B", tr:"Ne zahmeti, afiyet olsun.", de:"Welche Mühe, lass es dir schmecken."},
+    {w:"A", tr:"Çay koyayım, buyur otur biraz.", de:"Ich mache Tee, komm, setz dich ein bisschen."},
+    {w:"B", tr:"Yok yok, ocakta yemek var, kaçıyorum.", de:"Nein nein, auf dem Herd steht Essen, ich muss weg."},
+    {w:"A", tr:"Tabağı sonra getireyim.", de:"Ich bringe den Teller später zurück."},
+    {w:"B", tr:"Acelesi yok, kolay gelsin.", de:"Keine Eile, gute Arbeit."}
+  ],
+  f:[
+    {q:"Was antwortet die Nachbarin auf das Lob?", o:["Welche Mühe","Ich habe lange gebraucht","Nimm nur wenig"], r:0,
+     w:"Ne zahmeti wehrt das Lob ab und ist die übliche bescheidene Antwort."},
+    {q:"Warum bleibt die Nachbarin nicht?", o:["Essen steht auf dem Herd","Sie mag keinen Tee","Sie ist böse"], r:0,
+     w:"Ocakta yemek var, auf dem Herd ist Essen."}
+  ],
+  tip:"Der Teller geht nie leer zurück. Wer ihn zurückbringt, legt etwas Eigenes hinein." },
+
+{ t:"Im Esnaf Lokantası", s:"Schauen, zeigen, bestellen", ic:"plate", c:"#fc4847",
+  o:"Mittags in einem einfachen Lokal. Das Essen steht in Schalen hinter Glas.",
+  z:[
+    {w:"B", tr:"Hoş geldiniz, buyurun bakın.", de:"Willkommen, schauen Sie sich um."},
+    {w:"A", tr:"Bugün ne var?", de:"Was gibt es heute?"},
+    {w:"B", tr:"Kuru fasulye var, karnıyarık var, bir de mercimek çorbası.", de:"Es gibt weiße Bohnen, gefüllte Auberginen und Linsensuppe."},
+    {w:"A", tr:"Şundan bir porsiyon alabilir miyim?", de:"Könnte ich eine Portion davon haben?"},
+    {w:"B", tr:"Pilav ister misiniz yanına?", de:"Möchten Sie Reis dazu?"},
+    {w:"A", tr:"Olsun, az olsun ama.", de:"Gern, aber nur wenig."},
+    {w:"B", tr:"Afiyet olsun.", de:"Guten Appetit."},
+    {w:"A", tr:"Teşekkürler. Hesabı alabilir miyim?", de:"Danke. Könnte ich die Rechnung haben?"}
+  ],
+  f:[
+    {q:"Was gibt es an diesem Tag nicht?", o:["Hähnchen","Weiße Bohnen","Linsensuppe"], r:0,
+     w:"Genannt werden kuru fasulye, karnıyarık und mercimek çorbası."},
+    {q:"Wie zeigt man auf ein Gericht, dessen Namen man nicht kennt?", o:["Şundan bir porsiyon","Hesabı alabilir miyim","Ne var bugün"], r:0,
+     w:"Şundan heißt von jenem da und rettet jede Bestellung."}
+  ],
+  tip:"In solchen Lokalen zeigt man einfach. Niemand erwartet, dass du jeden Gerichtnamen kennst." },
+
+{ t:"Frühstück beim Simitçi", s:"Schnell etwas auf die Hand", ic:"bread", c:"#e8a33d",
+  o:"Morgens am Simitkarren vor der Haltestelle.",
+  z:[
+    {w:"A", tr:"Günaydın, bir simit lütfen.", de:"Guten Morgen, ein Simit bitte."},
+    {w:"B", tr:"Günaydın. Sıcak olanlardan vereyim mi?", de:"Guten Morgen. Soll ich von den warmen geben?"},
+    {w:"A", tr:"Olur, sıcak olsun.", de:"Ja, gern warm."},
+    {w:"B", tr:"Peynir de koyayım mı içine?", de:"Soll ich auch Käse hineintun?"},
+    {w:"A", tr:"Yok, sade yeter.", de:"Nein, einfach so reicht."},
+    {w:"B", tr:"On beş lira.", de:"Fünfzehn Lira."},
+    {w:"A", tr:"Buyurun. İyi işler.", de:"Bitte sehr. Gute Geschäfte."}
+  ],
+  f:[
+    {q:"Was lehnt die Kundin ab?", o:["Käse im Simit","Einen warmen Simit","Das Wechselgeld"], r:0,
+     w:"Sade yeter, einfach so reicht."},
+    {q:"Was heißt sade hier?", o:["Ohne alles","Mit Zucker","Sehr groß"], r:0,
+     w:"Sade heißt schlicht, pur. Beim Kaffee bedeutet es ohne Zucker."}
+  ],
+  tip:"Beim Kaffee entscheidet sade, orta, şekerli über die Zuckermenge. Gefragt wird einmal, danach merkt es sich der Verkäufer." },
+
+{ t:"Im Dolmuş", s:"Geld weiterreichen, aussteigen", ic:"car", c:"#2f7fd4",
+  o:"Der Dolmuş ist voll. Du sitzt hinten und musst bezahlen.",
+  z:[
+    {w:"A", tr:"Pardon, bir kişi.", de:"Entschuldigung, eine Person."},
+    {w:"B", tr:"Arkadan geliyor, uzatın.", de:"Kommt von hinten, reichen Sie es weiter."},
+    {w:"A", tr:"Üstü var mı?", de:"Haben Sie Wechselgeld?"},
+    {w:"B", tr:"Var var, geliyor.", de:"Ja, ja, es kommt."},
+    {w:"A", tr:"Müsait bir yerde inebilir miyim?", de:"Könnte ich an einer passenden Stelle aussteigen?"},
+    {w:"B", tr:"Tabii, köşede durayım.", de:"Klar, ich halte an der Ecke."},
+    {w:"A", tr:"Sağ olun, iyi yolculuklar.", de:"Danke, gute Fahrt."}
+  ],
+  f:[
+    {q:"Wie sagt man, dass man aussteigen möchte?", o:["Müsait bir yerde","Üstü var mı","Bir kişi"], r:0,
+     w:"Müsait bir yerde inebilir miyim ist der feste Satz im Dolmuş."},
+    {q:"Was macht man mit dem Geld, wenn man hinten sitzt?", o:["Nach vorn weiterreichen","Liegen lassen","Beim Aussteigen zahlen"], r:0,
+     w:"Uzatın heißt reichen Sie es weiter. Die Fahrgäste geben es bis zum Fahrer durch."}
+  ],
+  tip:"Bir kişi heißt eine Person. Für zwei sagt man iki kişi, und das Geld wandert ohne Worte durch den ganzen Wagen." },
+
+{ t:"In der Apotheke", s:"Beschwerden beschreiben", ic:"heart", c:"#cf5230",
+  o:"Du hast Halsschmerzen und gehst in die Eczane.",
+  z:[
+    {w:"B", tr:"Buyurun, geçmiş olsun.", de:"Bitte sehr, gute Besserung."},
+    {w:"A", tr:"Boğazım ağrıyor, iki gündür.", de:"Mein Hals tut weh, seit zwei Tagen."},
+    {w:"B", tr:"Ateşiniz var mı?", de:"Haben Sie Fieber?"},
+    {w:"A", tr:"Yok, sadece ağrı var.", de:"Nein, nur Schmerzen."},
+    {w:"B", tr:"Pastil vereyim, bir de gargara.", de:"Ich gebe Ihnen Lutschtabletten und eine Gurgellösung."},
+    {w:"A", tr:"Günde kaç kere?", de:"Wie oft am Tag?"},
+    {w:"B", tr:"Günde üç kez. Geçmezse doktora gidin.", de:"Dreimal am Tag. Wenn es nicht weggeht, gehen Sie zum Arzt."},
+    {w:"A", tr:"Tamam, teşekkür ederim.", de:"Gut, danke schön."}
+  ],
+  f:[
+    {q:"Seit wann hat sie Halsschmerzen?", o:["Seit zwei Tagen","Seit einer Woche","Seit heute Morgen"], r:0,
+     w:"İki gündür, seit zwei Tagen."},
+    {q:"Was heißt geçmiş olsun?", o:["Gute Besserung","Guten Appetit","Willkommen"], r:0,
+     w:"Wörtlich möge es vorbei sein. Man sagt es jedem, der krank war oder etwas Unangenehmes hinter sich hat."}
+  ],
+  tip:"Ağrıyor heißt es tut weh. Davor steht der Körperteil mit Besitz: başım ağrıyor, mein Kopf tut weh." },
+
+{ t:"Beim Friseur", s:"Sagen, wie viel abgeschnitten wird", ic:"scissors", c:"#8a5cd6",
+  o:"Du sitzt im Stuhl, der Friseur hält die Schere bereit.",
+  z:[
+    {w:"B", tr:"Nasıl olsun?", de:"Wie soll es werden?"},
+    {w:"A", tr:"Çok kısa olmasın, sadece uçlardan alın.", de:"Nicht zu kurz, nur die Spitzen."},
+    {w:"B", tr:"Şöyle iki parmak diyelim mi?", de:"Sagen wir zwei Finger breit?"},
+    {w:"A", tr:"Olur ama arkası uzun kalsın.", de:"Ja, aber hinten soll es lang bleiben."},
+    {w:"B", tr:"Yıkayalım mı önce?", de:"Sollen wir vorher waschen?"},
+    {w:"A", tr:"Yıkayalım.", de:"Ja, waschen wir."},
+    {w:"B", tr:"Böyle iyi mi?", de:"Ist es so gut?"},
+    {w:"A", tr:"Çok iyi oldu, eline sağlık.", de:"Sehr gut geworden, danke dir."}
+  ],
+  f:[
+    {q:"Wie viel soll abgeschnitten werden?", o:["Nur die Spitzen","Die Hälfte","Ganz kurz"], r:0,
+     w:"Sadece uçlardan alın, nur von den Spitzen nehmen."},
+    {q:"Was sagt man zu jemandem, der gut gearbeitet hat?", o:["Eline sağlık","Geçmiş olsun","Hoş bulduk"], r:0,
+     w:"Eline sağlık heißt Gesundheit deiner Hand und gilt für Essen wie für Handwerk."}
+  ],
+  tip:"Olmasın am Satzende ist eine höfliche Bitte: kısa olmasın heißt es soll nicht kurz werden." },
+
+{ t:"Termin am Telefon", s:"Datum und Uhrzeit abstimmen", ic:"clock", c:"#2f9e6a",
+  o:"Du rufst in einer Praxis an und willst einen Termin.",
+  z:[
+    {w:"B", tr:"Alo, buyurun.", de:"Hallo, bitte sehr."},
+    {w:"A", tr:"Merhaba, randevu almak istiyorum.", de:"Hallo, ich möchte einen Termin."},
+    {w:"B", tr:"Ne zaman için?", de:"Für wann?"},
+    {w:"A", tr:"Bu hafta mümkün mü?", de:"Ist diese Woche möglich?"},
+    {w:"B", tr:"Perşembe saat ikide boş var.", de:"Donnerstag um zwei ist frei."},
+    {w:"A", tr:"Perşembe olur. Daha geç bir saat var mı?", de:"Donnerstag passt. Gibt es eine spätere Uhrzeit?"},
+    {w:"B", tr:"Dörtte de olur. Adınızı alabilir miyim?", de:"Vier geht auch. Darf ich Ihren Namen haben?"},
+    {w:"A", tr:"Lena Fischer. Teşekkürler, görüşmek üzere.", de:"Lena Fischer. Danke, bis dann."}
+  ],
+  f:[
+    {q:"Wann ist der Termin am Ende?", o:["Donnerstag um vier","Donnerstag um zwei","Freitag um zwei"], r:0,
+     w:"Dörtte de olur, um vier geht auch, und darauf einigen sie sich."},
+    {q:"Was heißt boş var?", o:["Es ist frei","Es ist voll","Es ist geschlossen"], r:0,
+     w:"Boş heißt leer oder frei. Boş var, es ist ein Platz frei."}
+  ],
+  tip:"Bei Uhrzeiten steht die Endung de oder te: ikide um zwei, dörtte um vier, beşte um fünf." },
+
+{ t:"Im Krankenhaus", s:"Sich zurechtfinden", ic:"heart", c:"#fc4847",
+  o:"Du sollst zur Blutabnahme und suchst den richtigen Schalter.",
+  z:[
+    {w:"A", tr:"Affedersiniz, kan alma nerede?", de:"Entschuldigung, wo ist die Blutabnahme?"},
+    {w:"B", tr:"Zemin katta, asansörden sonra sola.", de:"Im Erdgeschoss, nach dem Aufzug links."},
+    {w:"A", tr:"Sıra almam gerekiyor mu?", de:"Muss ich eine Nummer ziehen?"},
+    {w:"B", tr:"Evet, makineden numara alın.", de:"Ja, ziehen Sie am Automaten eine Nummer."},
+    {w:"A", tr:"Aç karnına mı olmalı?", de:"Muss es nüchtern sein?"},
+    {w:"B", tr:"Evet, bir şey yemediyseniz olur.", de:"Ja, wenn Sie nichts gegessen haben, geht es."},
+    {w:"A", tr:"Anladım, çok teşekkürler.", de:"Verstanden, vielen Dank."},
+    {w:"B", tr:"Geçmiş olsun.", de:"Gute Besserung."}
+  ],
+  f:[
+    {q:"Wo ist die Blutabnahme?", o:["Erdgeschoss, links","Erster Stock, rechts","Neben dem Eingang"], r:0,
+     w:"Zemin katta, asansörden sonra sola."},
+    {q:"Was bedeutet aç karnına?", o:["Nüchtern","Nach dem Essen","Mit viel Wasser"], r:0,
+     w:"Aç heißt hungrig, karın ist der Bauch. Aç karnına, auf leeren Magen."}
+  ],
+  tip:"Affedersiniz ist das höflichere Entschuldigung für Fremde. Pardon geht auch und ist etwas lockerer." },
+
+{ t:"Check in im Hotel", s:"Ankommen und fragen", ic:"door", c:"#2f7fd4",
+  o:"Du kommst am Abend im Hotel an.",
+  z:[
+    {w:"A", tr:"İyi akşamlar, rezervasyonum var.", de:"Guten Abend, ich habe eine Reservierung."},
+    {w:"B", tr:"Hoş geldiniz. İsminiz?", de:"Willkommen. Ihr Name?"},
+    {w:"A", tr:"Fischer. İki gecelik.", de:"Fischer. Für zwei Nächte."},
+    {w:"B", tr:"Buldum. Kimliğinizi alabilir miyim?", de:"Gefunden. Darf ich Ihren Ausweis haben?"},
+    {w:"A", tr:"Buyurun. Kahvaltı saat kaçta?", de:"Bitte sehr. Um wie viel Uhr ist Frühstück?"},
+    {w:"B", tr:"Yedi ile ondur, ikinci katta.", de:"Von sieben bis zehn, im zweiten Stock."},
+    {w:"A", tr:"Odada wifi var mı?", de:"Gibt es WLAN im Zimmer?"},
+    {w:"B", tr:"Var, şifre kartın arkasında.", de:"Ja, das Passwort steht hinten auf der Karte."}
+  ],
+  f:[
+    {q:"Wie lange bleibt der Gast?", o:["Zwei Nächte","Eine Nacht","Eine Woche"], r:0,
+     w:"İki gecelik, für zwei Nächte."},
+    {q:"Wann gibt es Frühstück?", o:["Sieben bis zehn","Acht bis elf","Sechs bis neun"], r:0,
+     w:"Yedi ile ondur, von sieben bis zehn."}
+  ],
+  tip:"İki gecelik, drei Nächte üç gecelik. Die Endung lik macht aus der Zahl eine Dauer." },
+
+{ t:"Nach dem Weg fragen", s:"Links, rechts, geradeaus", ic:"route", c:"#e8a33d",
+  o:"Du suchst eine Straße und sprichst jemanden an.",
+  z:[
+    {w:"A", tr:"Affedersiniz, bu cadde nerede biliyor musunuz?", de:"Entschuldigung, wissen Sie, wo diese Straße ist?"},
+    {w:"B", tr:"Şuradan düz gidin, ikinci sokaktan sağa.", de:"Gehen Sie da geradeaus, in die zweite Straße rechts."},
+    {w:"A", tr:"Yürüyerek ne kadar sürer?", de:"Wie lange dauert es zu Fuß?"},
+    {w:"B", tr:"Beş dakika, en fazla on.", de:"Fünf Minuten, höchstens zehn."},
+    {w:"A", tr:"Yolu kaybedersem?", de:"Und wenn ich mich verlaufe?"},
+    {w:"B", tr:"Oraya varınca camiyi görürsünüz, yanındadır.", de:"Wenn Sie dort ankommen, sehen Sie die Moschee, es ist daneben."},
+    {w:"A", tr:"Çok sağ olun.", de:"Vielen Dank."},
+    {w:"B", tr:"Rica ederim, kolay gelsin.", de:"Gern geschehen, viel Erfolg."}
+  ],
+  f:[
+    {q:"Welche Straße soll sie nehmen?", o:["Die zweite rechts","Die erste links","Die dritte rechts"], r:0,
+     w:"İkinci sokaktan sağa, in die zweite Straße rechts."},
+    {q:"Woran erkennt sie die Stelle?", o:["An der Moschee","An einer Bank","An einem Park"], r:0,
+     w:"Camiyi görürsünüz, Sie sehen die Moschee."}
+  ],
+  tip:"Cadde ist eine größere Straße, sokak eine kleinere Gasse. Adressen nennen oft beide." },
+
+{ t:"Zu Besuch", s:"Ankommen, Schuhe, Tee", ic:"door", c:"#8a5cd6",
+  o:"Du bist zum ersten Mal bei einer Familie eingeladen.",
+  z:[
+    {w:"B", tr:"Hoş geldin, buyur içeri.", de:"Willkommen, komm herein."},
+    {w:"A", tr:"Hoş bulduk. Ayakkabılarımı çıkarayım mı?", de:"Danke. Soll ich meine Schuhe ausziehen?"},
+    {w:"B", tr:"Çıkar, terlik orada.", de:"Zieh sie aus, die Hausschuhe stehen dort."},
+    {w:"A", tr:"Küçük bir şey getirdim.", de:"Ich habe eine Kleinigkeit mitgebracht."},
+    {w:"B", tr:"Ay, ne gerek vardı. Çok teşekkürler.", de:"Ach, das wäre nicht nötig gewesen. Vielen Dank."},
+    {w:"A", tr:"Rica ederim.", de:"Gern geschehen."},
+    {w:"B", tr:"Çay mı kahve mi?", de:"Tee oder Kaffee?"},
+    {w:"A", tr:"Çay olsun, teşekkürler.", de:"Tee bitte, danke."}
+  ],
+  f:[
+    {q:"Was fragt der Gast an der Tür?", o:["Ob er die Schuhe ausziehen soll","Wo er sitzen soll","Ob er zu früh ist"], r:0,
+     w:"Ayakkabılarımı çıkarayım mı, soll ich meine Schuhe ausziehen."},
+    {q:"Was antwortet die Gastgeberin auf das Mitbringsel?", o:["Das wäre nicht nötig gewesen","Stell es dorthin","Das mag ich nicht"], r:0,
+     w:"Ne gerek vardı ist die übliche Antwort und meint das Gegenteil von Ablehnung."}
+  ],
+  tip:"Niemand wird dich bitten, die Schuhe auszuziehen. Erwartet wird es trotzdem, also frag lieber einmal." },
+
+{ t:"Eine Einladung bekommen", s:"Zusagen und absagen", ic:"calendar", c:"#2f9e6a",
+  o:"Eine Kollegin lädt dich zu einer Hochzeit ein.",
+  z:[
+    {w:"B", tr:"Cumartesi düğünümüz var, bekleriz.", de:"Samstag ist unsere Hochzeit, wir erwarten dich."},
+    {w:"A", tr:"Aa, tebrikler. Nerede?", de:"Oh, Glückwunsch. Wo?"},
+    {w:"B", tr:"Şehir dışında bir salonda, servis var.", de:"In einem Saal außerhalb der Stadt, es gibt einen Shuttle."},
+    {w:"A", tr:"Saat kaçta başlıyor?", de:"Um wie viel Uhr beginnt es?"},
+    {w:"B", tr:"Sekizde, ama sen erken gel.", de:"Um acht, aber komm du früher."},
+    {w:"A", tr:"Mutlaka gelirim.", de:"Ich komme auf jeden Fall."},
+    {w:"B", tr:"Çok sevindim.", de:"Ich freue mich sehr."}
+  ],
+  f:[
+    {q:"Wann beginnt die Hochzeit?", o:["Um acht","Um sechs","Um neun"], r:0,
+     w:"Sekizde, um acht."},
+    {q:"Was heißt mutlaka gelirim?", o:["Ich komme auf jeden Fall","Vielleicht komme ich","Ich kann nicht"], r:0,
+     w:"Mutlaka heißt unbedingt, bestimmt."}
+  ],
+  tip:"Bekleriz, wir erwarten dich, ist eine echte Einladung. Eine höfliche Absage lautet çok isterdim ama, ich würde sehr gern, aber." },
+
+{ t:"Eine Wohnung ansehen", s:"Fragen, die wirklich wichtig sind", ic:"door", c:"#cf5230",
+  o:"Du siehst dir eine Mietwohnung an.",
+  z:[
+    {w:"A", tr:"Kaç oda?", de:"Wie viele Zimmer?"},
+    {w:"B", tr:"İki artı bir, salon geniş.", de:"Zwei plus eins, das Wohnzimmer ist groß."},
+    {w:"A", tr:"Aidat ne kadar?", de:"Wie hoch ist das Hausgeld?"},
+    {w:"B", tr:"Ayda beş yüz lira, suyu dahil.", de:"Fünfhundert Lira im Monat, Wasser inklusive."},
+    {w:"A", tr:"Isıtma nasıl?", de:"Wie wird geheizt?"},
+    {w:"B", tr:"Doğalgaz, kombi var.", de:"Erdgas, es gibt eine Therme."},
+    {w:"A", tr:"Depozito kaç kira?", de:"Wie viele Mieten Kaution?"},
+    {w:"B", tr:"İki kira.", de:"Zwei Mieten."}
+  ],
+  f:[
+    {q:"Was ist im Hausgeld enthalten?", o:["Wasser","Strom","Internet"], r:0,
+     w:"Suyu dahil, das Wasser ist inklusive."},
+    {q:"Was bedeutet iki artı bir?", o:["Zwei Zimmer und ein Wohnzimmer","Zwei Bäder","Zweiter Stock"], r:0,
+     w:"Zimmerangaben zählen das Wohnzimmer getrennt: 2+1 heißt zwei Zimmer plus Salon."}
+  ],
+  tip:"Aidat ist das monatliche Hausgeld und steht in keiner Anzeige groß dabei. Immer danach fragen." },
+
+{ t:"Am Flughafen", s:"Koffer, Schalter, Gate", ic:"plane", c:"#2f7fd4",
+  o:"Du gibst deinen Koffer auf.",
+  z:[
+    {w:"B", tr:"Pasaportunuz lütfen.", de:"Ihren Pass bitte."},
+    {w:"A", tr:"Buyurun. Tek valizim var.", de:"Bitte sehr. Ich habe einen Koffer."},
+    {w:"B", tr:"Bagajı buraya koyun.", de:"Stellen Sie das Gepäck hierher."},
+    {w:"A", tr:"Kaç kilo hakkım var?", de:"Wie viele Kilo habe ich frei?"},
+    {w:"B", tr:"Yirmi kilo. Sizinki on sekiz, sorun yok.", de:"Zwanzig Kilo. Ihrer ist achtzehn, kein Problem."},
+    {w:"A", tr:"Kapı numarası kaç?", de:"Welche Gate-Nummer?"},
+    {w:"B", tr:"B on iki, uçuş saatinde değişebilir.", de:"B zwölf, es kann sich zur Flugzeit ändern."},
+    {w:"A", tr:"Teşekkürler, iyi günler.", de:"Danke, schönen Tag."}
+  ],
+  f:[
+    {q:"Wie schwer ist der Koffer?", o:["Achtzehn Kilo","Zwanzig Kilo","Zwölf Kilo"], r:0,
+     w:"Sizinki on sekiz, Ihrer ist achtzehn."},
+    {q:"Was heißt hakkım var?", o:["Ich habe Anspruch darauf","Ich habe bezahlt","Ich habe vergessen"], r:0,
+     w:"Hak ist das Recht, der Anspruch. Kaç kilo hakkım var, wie viel Freigepäck habe ich."}
+  ],
+  tip:"Valiz und bavul heißen beide Koffer. Bagaj ist das Gepäck insgesamt." },
+
+{ t:"Etwas umtauschen", s:"Nicht passend, zurückgeben", ic:"shop", c:"#8a5cd6",
+  o:"Der Pullover ist zu klein, du gehst zurück in den Laden.",
+  z:[
+    {w:"A", tr:"Merhaba, bunu değiştirmek istiyorum.", de:"Hallo, ich möchte das umtauschen."},
+    {w:"B", tr:"Tabii, fişiniz var mı?", de:"Klar, haben Sie den Kassenbon?"},
+    {w:"A", tr:"Var, buyurun. Biraz dar geldi.", de:"Ja, bitte sehr. Es ist etwas eng."},
+    {w:"B", tr:"Bir beden büyüğünü vereyim mi?", de:"Soll ich eine Nummer größer geben?"},
+    {w:"A", tr:"Olur. Başka rengi var mı?", de:"Gern. Gibt es eine andere Farbe?"},
+    {w:"B", tr:"Lacivert ve siyah var.", de:"Es gibt Dunkelblau und Schwarz."},
+    {w:"A", tr:"Lacivert olsun.", de:"Dunkelblau bitte."},
+    {w:"B", tr:"Hemen getiriyorum.", de:"Ich bringe es sofort."}
+  ],
+  f:[
+    {q:"Warum wird der Pullover umgetauscht?", o:["Er ist zu eng","Er ist kaputt","Die Farbe gefällt nicht"], r:0,
+     w:"Biraz dar geldi, er ist etwas eng ausgefallen."},
+    {q:"Was heißt fiş?", o:["Kassenbon","Tasche","Preis"], r:0,
+     w:"Fiş ist der Kassenbon. Ohne fiş wird selten umgetauscht."}
+  ],
+  tip:"Dar geldi, bol geldi: zu eng, zu weit. Das geldi heißt wörtlich es kam so, also es ist so ausgefallen." },
+
+{ t:"Smalltalk im Aufzug", s:"Kurze Sätze, die jeder sagt", ic:"door", c:"#e8a33d",
+  o:"Du steigst mit einem Nachbarn in den Aufzug.",
+  z:[
+    {w:"A", tr:"Merhaba, kolay gelsin.", de:"Hallo, gute Arbeit."},
+    {w:"B", tr:"Sağ olun. Hava bugün çok sıcak.", de:"Danke. Das Wetter ist heute sehr heiß."},
+    {w:"A", tr:"Evet, dayanılmaz.", de:"Ja, unerträglich."},
+    {w:"B", tr:"Yeni mi taşındınız?", de:"Sind Sie neu eingezogen?"},
+    {w:"A", tr:"Geçen ay taşındık.", de:"Wir sind letzten Monat eingezogen."},
+    {w:"B", tr:"Hayırlı olsun, komşuyuz demek.", de:"Viel Glück damit, wir sind also Nachbarn."},
+    {w:"A", tr:"Öyle görünüyor, iyi günler.", de:"So sieht es aus, schönen Tag."}
+  ],
+  f:[
+    {q:"Wann ist die Person eingezogen?", o:["Letzten Monat","Letzte Woche","Vor einem Jahr"], r:0,
+     w:"Geçen ay taşındık, wir sind letzten Monat eingezogen."},
+    {q:"Was sagt man zu etwas Neuem?", o:["Hayırlı olsun","Geçmiş olsun","Afiyet olsun"], r:0,
+     w:"Hayırlı olsun gilt für neue Wohnung, neues Auto, neue Arbeit."}
+  ],
+  tip:"Im Aufzug wird gegrüßt, auch unter Fremden. Schweigen gilt als unfreundlich." }
+
+];
+
+
+/* ---------- 4b3. HÖRECKE: MODI ---------- */
+const HOER_MODI = [["spr","Sprichwörter"],["dlg","Dialoge"],["her","Heraushören"]];
+const HER_N = 10;   /* Fragen je Runde beim Heraushören */
+
+function hoerKopf(aktiv){
+  return `<div class="chips hmodi">${HOER_MODI.map(([k,l]) =>
+    `<button class="${k === aktiv ? "on" : ""}" data-hmod="${k}">${esc(l)}</button>`).join("")}</div>`;
+}
+function wireHoerKopf(){
+  app.querySelectorAll("[data-hmod]").forEach(b => {
+    b.onclick = () => { stopClip(); plToken++; S.hMode = b.dataset.hmod; save(); hoerScreen(); };
+  });
+}
+function tempoLeiste(){
+  return `<div class="tempo">${TEMPI.map(([v,l]) =>
+    `<button class="${tempoFaktor() === v ? "on" : ""}" data-tempo="${v}">${esc(l)}</button>`).join("")}</div>`;
+}
+function wireTempo(neuZeichnen){
+  app.querySelectorAll("[data-tempo]").forEach(b => {
+    b.onclick = () => { S.hTempo = +b.dataset.tempo; save(); stopClip(); plToken++; neuZeichnen(); };
+  });
+}
+const keineStimme = () => canPlayAudio() ? "" : `<div class="warn">
+  Auf diesem Gerät ist keine türkische Stimme installiert. Wir lesen türkische Sätze
+  bewusst nicht mit einer deutschen Stimme vor, sonst würdest du dir eine falsche
+  Aussprache angewöhnen. Lesen und Mitlesen funktioniert weiterhin.</div>`;
+
+/* ---------- Dialoge ---------- */
+const dlgStand = di => (S.hd && S.hd[di]) || null;
+function dlgListe(){
+  app.innerHTML = topbar() + reiter("hoer") + `
+    <div class="hero" style="padding-bottom:10px">
+      <h1>Hörecke</h1>
+      <p>Gespräche, wie sie wirklich laufen. Erst hören, dann nachlesen, dann die Fragen.</p>
+    </div>
+    ${hoerKopf("dlg")}
+    ${keineStimme()}
+    <div class="path">
+      ${DIALOG.map((d,di) => {
+        const st = dlgStand(di);
+        return `<button class="node" data-dlg="${di}">
+          <div class="orb ${st ? "done" : "open"}" style="background:${d.c};border-color:${d.c};box-shadow:0 4px 0 ${d.c}99">
+            ${st ? svgIcon("check") : svgIcon(d.ic)}</div>
+          <div class="meta"><b>${esc(d.t)}</b><span>${esc(d.s)} · ${d.z.length} Sätze${
+            st ? " · " + st.p + " von " + d.f.length + " richtig" : ""}</span></div>
+        </button>`;
+      }).join("")}
+    </div>
+    <div class="foot"><button class="cta ghost" id="back">Zurück zur Übersicht</button></div>`;
+  document.getElementById("chip").onclick = profileSheet;
+  document.getElementById("back").onclick = home;
+  wireReiter(); wireHoerKopf();
+  app.querySelectorAll("[data-dlg]").forEach(b => {
+    b.onclick = () => dlgScreen(+b.dataset.dlg);
+  });
+}
+
+let DLG = { di:0, zeigen:false, i:-1 };
+function dlgScreen(di, zeigen){
+  stopClip(); plToken++;
+  DLG = { di, zeigen: zeigen === undefined ? DLG.zeigen : zeigen, i:-1 };
+  dlgRender();
+}
+function dlgRender(){
+  const d = DIALOG[DLG.di];
+  app.innerHTML = topbar() + `
+    <div class="hero" style="padding-bottom:8px">
+      <h1>${esc(d.t)}</h1>
+      <p>${esc(d.o)}</p>
+    </div>
+    ${keineStimme()}
+    ${tempoLeiste()}
+    <div class="dlgbox">
+      ${d.z.map((l,li) => `<div class="dz ${l.w === "A" ? "a" : "b"} ${DLG.i === li ? "jetzt" : ""}" data-z="${li}">
+        <span class="wer">${l.w === "A" ? "Du" : "Gegenüber"}</span>
+        <p class="ztr">${DLG.zeigen ? esc(l.tr) : "• • •"}</p>
+        ${DLG.zeigen ? `<p class="zde">${esc(l.de)}</p>` : ""}
+      </div>`).join("")}
+    </div>
+    <div class="foot">
+      <button class="cta" id="dplay">${DLG.i >= 0 ? "Noch einmal von vorn" : "Gespräch anhören"}</button>
+      <button class="cta ghost" id="dtext">${DLG.zeigen ? "Text verbergen" : "Text anzeigen"}</button>
+      <button class="cta ghost" id="dfrag">Zu den Fragen</button>
+      <button class="cta ghost" id="dback">Zurück</button>
+    </div>`;
+  const g = id => document.getElementById(id);
+  g("chip").onclick = profileSheet;
+  g("dplay").onclick = dlgPlay;
+  g("dtext").onclick = () => { DLG.zeigen = !DLG.zeigen; dlgRender(); };
+  g("dfrag").onclick = () => { stopClip(); plToken++; dlgFragen(0, 0); };
+  g("dback").onclick = () => { stopClip(); plToken++; dlgListe(); };
+  wireTempo(dlgRender);
+  app.querySelectorAll("[data-z]").forEach(b => {
+    b.onclick = () => {
+      const l = DIALOG[DLG.di].z[+b.dataset.z];
+      stopClip(); plToken++;
+      say(l.tr, "tr");
+    };
+  });
+  if(d.tip && DLG.zeigen){
+    const box = document.querySelector(".dlgbox");
+    if(box) box.insertAdjacentHTML("afterend", `<div class="read" style="padding:0 16px 4px"><div class="tp">${esc(d.tip)}</div></div>`);
+  }
+}
+function dlgPlay(){
+  const my = ++plToken, d = DIALOG[DLG.di];
+  let i = 0;
+  const lauf = () => {
+    if(my !== plToken) return;
+    if(i >= d.z.length){ DLG.i = -1; dlgRender(); return; }
+    DLG.i = i;
+    /* nur die laufende Zeile hervorheben, ohne alles neu zu bauen */
+    app.querySelectorAll("[data-z]").forEach(e => e.classList.toggle("jetzt", +e.dataset.z === i));
+    const el = app.querySelector(`[data-z="${i}"]`);
+    if(el) el.scrollIntoView({ block:"center", behavior:"smooth" });
+    const l = d.z[i];
+    i++;
+    speak(l.tr, "tr", () => { if(my === plToken) setTimeout(lauf, 420); },
+          { pitch: l.w === "A" ? 1.08 : 0.92 });
+  };
+  DLG.i = 0; lauf();
+}
+
+function dlgFragen(fi, richtig){
+  const d = DIALOG[DLG.di], f = d.f[fi];
+  if(!f) return dlgErgebnis(richtig);
+  app.innerHTML = topbar() + `
+    <div class="hero" style="padding-bottom:8px">
+      <h1>${esc(d.t)}</h1>
+      <p>Frage ${fi+1} von ${d.f.length}</p>
+    </div>
+    <div class="read" style="padding-top:0">
+      <div class="sec"><h3>${esc(f.q)}</h3>
+        <div class="opts">${f.o.map((o,oi) =>
+          `<button class="opt" data-o="${oi}">${esc(o)}</button>`).join("")}</div>
+      </div>
+    </div>
+    <div class="foot"><button class="cta ghost" id="zurueck">Noch einmal hören</button></div>`;
+  document.getElementById("chip").onclick = profileSheet;
+  document.getElementById("zurueck").onclick = () => dlgScreen(DLG.di);
+  app.querySelectorAll("[data-o]").forEach(b => {
+    b.onclick = () => {
+      const ok = +b.dataset.o === f.r;
+      app.querySelectorAll("[data-o]").forEach(x => { x.disabled = true; });
+      b.classList.add(ok ? "right" : "wrong");
+      if(!ok) app.querySelector(`[data-o="${f.r}"]`).classList.add("right");
+      sfx(ok ? "right" : "wrong");
+      const box = document.querySelector(".sec");
+      box.insertAdjacentHTML("beforeend",
+        `<div class="tp" style="margin-top:12px">${esc(f.w)}</div>`);
+      document.getElementById("zurueck").textContent = "Weiter";
+      document.getElementById("zurueck").onclick = () => dlgFragen(fi+1, richtig + (ok ? 1 : 0));
+    };
+  });
+}
+function dlgErgebnis(richtig){
+  const d = DIALOG[DLG.di], alle = richtig === d.f.length;
+  if(!S.hd) S.hd = {};
+  const vorher = S.hd[DLG.di];
+  if(!vorher || vorher.p < richtig) S.hd[DLG.di] = { p: richtig };
+  addXp(richtig * 10 + (alle ? 10 : 0));
+  save();
+  app.innerHTML = `<div class="result${alle ? " jubel" : ""}">
+    ${mascot(alle ? "happy" : "think")}
+    <div class="bigword">${richtig} von ${d.f.length}</div>
+    <p>${esc(d.t)}</p>
+  </div>
+  <div class="foot">
+    <button class="cta" id="w">Weiter</button>
+    <button class="cta ghost" id="n">Gespräch noch einmal hören</button>
+  </div>`;
+  document.getElementById("w").onclick = dlgListe;
+  document.getElementById("n").onclick = () => dlgScreen(DLG.di, true);
+  if(alle) konfetti(false);
+}
+
+/* ---------- Heraushören: wird jeden Tag neu gemischt ---------- */
+let HERPOOL = null;
+function herPool(){
+  if(HERPOOL) return HERPOOL;
+  const seen = {}, out = [];
+  const woerter = t => String(t).trim().split(/\s+/).filter(Boolean).length;
+  const rein = (tr, de, art) => {
+    if(!tr || !de) return;
+    const k = tr.toLowerCase();
+    if(seen[k]) return;
+    seen[k] = 1;
+    /* Die Beschriftung richtet sich nach der Länge, nicht nach der Herkunft:
+       ein ganzer Satz soll nicht als Wort angekündigt werden. */
+    const n = woerter(de);
+    const echt = art === "Sprichwort" ? "Sprichwort" : (n <= 2 ? "Wort" : (n <= 5 ? "Wendung" : "Satz"));
+    out.push({ tr, de, art: echt, n });
+  };
+  DIALOG.forEach(d => d.z.forEach(l => rein(l.tr, l.de, "Satz")));
+  BONUS.forEach(b => b.cards.forEach(c => rein(c.tr, c.de, "Sprichwort")));
+  UNITS.forEach(u => u.lessons.forEach(l => l.items.forEach(it => rein(it.tr, it.de, "Wort"))));
+  HERPOOL = out;
+  return out;
+}
+let HER = { runde:0, i:0, richtig:0, liste:[] };
+function herRunde(runde){
+  const pool = herPool();
+  const liste = mischenFest(pool.slice(), todayStr() + "-h" + runde).slice(0, HER_N);
+  HER = { runde, i:0, richtig:0, liste };
+  herRender();
+}
+function herStart(){
+  app.innerHTML = topbar() + reiter("hoer") + `
+    <div class="hero" style="padding-bottom:10px">
+      <h1>Hörecke</h1>
+      <p>Du hörst einen Satz und suchst die Bedeutung. Jeden Tag andere, der Vorrat geht nicht aus.</p>
+    </div>
+    ${hoerKopf("her")}
+    ${keineStimme()}
+    ${tempoLeiste()}
+    <div class="read" style="padding-top:4px">
+      <div class="sec"><h3>${HER_N} Sätze</h3>
+        <p class="tw">Aus allem, was in der App vorkommt</p>
+        <p>Gespräche, Sprichwörter und Wörter aus den Lektionen, zusammen ${herPool().length} Stück.
+        Die Runde von heute ist für alle gleich, morgen ist sie eine andere.
+        Du kannst gleich noch eine Runde anhängen, dann kommen andere Sätze.</p>
+      </div>
+    </div>
+    <div class="foot">
+      <button class="cta" id="los" ${canPlayAudio() ? "" : "disabled"}>Runde starten</button>
+      <button class="cta ghost" id="back">Zurück zur Übersicht</button>
+    </div>`;
+  document.getElementById("chip").onclick = profileSheet;
+  document.getElementById("back").onclick = home;
+  document.getElementById("los").onclick = () => herRunde(0);
+  wireReiter(); wireHoerKopf(); wireTempo(herStart);
+}
+function herRender(){
+  const e = HER.liste[HER.i];
+  if(!e) return herErgebnis();
+  const pool = herPool();
+  /* Die falschen Antworten müssen ähnlich lang sein wie die richtige.
+     Sonst verrät schon die Form, welche gemeint ist, und niemand hört hin. */
+  const nahe = pool.filter(x => x.de !== e.de && x.art === e.art
+                             && Math.abs((x.n || 1) - (e.n || 1)) <= Math.max(1, Math.round((e.n || 1) * 0.4)));
+  const quelle = nahe.length >= 2 ? nahe : pool.filter(x => x.de !== e.de && x.art === e.art);
+  const falsch = mischenFest(quelle, todayStr() + "-f" + HER.runde + "-" + HER.i).slice(0, 2);
+  const opts = mischenFest([e, ...falsch], todayStr() + "-o" + HER.runde + "-" + HER.i);
+  app.innerHTML = topbar() + `
+    <div class="hero" style="padding-bottom:8px">
+      <h1>Heraushören</h1>
+      <p>${HER.i + 1} von ${HER.liste.length}</p>
+    </div>
+    ${tempoLeiste()}
+    <div class="read" style="padding-top:0">
+      <div class="sec" style="text-align:center">
+        <button class="cta" id="wieder" style="margin:4px auto 14px;max-width:260px">Noch einmal hören</button>
+        <p class="tw">${esc(e.art)}</p>
+        <div class="opts">${opts.map(o =>
+          `<button class="opt" data-de="${esc(o.de)}">${esc(o.de)}</button>`).join("")}</div>
+      </div>
+    </div>
+    <div class="foot"><button class="cta ghost" id="raus">Runde abbrechen</button></div>`;
+  const g = id => document.getElementById(id);
+  g("chip").onclick = profileSheet;
+  g("wieder").onclick = () => { stopClip(); plToken++; say(e.tr, "tr"); };
+  g("raus").onclick = () => { stopClip(); plToken++; herStart(); };
+  wireTempo(herRender);
+  app.querySelectorAll("[data-de]").forEach(b => {
+    b.onclick = () => {
+      const ok = b.dataset.de === e.de;
+      app.querySelectorAll("[data-de]").forEach(x => { x.disabled = true; });
+      b.classList.add(ok ? "right" : "wrong");
+      if(!ok) app.querySelectorAll("[data-de]").forEach(x => {
+        if(x.dataset.de === e.de) x.classList.add("right");
+      });
+      sfx(ok ? "right" : "wrong");
+      if(ok) HER.richtig++;
+      document.querySelector(".sec").insertAdjacentHTML("beforeend",
+        `<div class="tp" style="margin-top:12px">${esc(e.tr)}</div>`);
+      g("raus").textContent = "Weiter";
+      g("raus").onclick = () => { stopClip(); plToken++; HER.i++; herRender(); };
+    };
+  });
+  setTimeout(() => { if(app.querySelector("#wieder")) say(e.tr, "tr"); }, 260);
+}
+function herErgebnis(){
+  const gut = HER.richtig >= Math.ceil(HER.liste.length * 0.7);
+  addXp(HER.richtig * 10);
+  save();
+  app.innerHTML = `<div class="result${gut ? " jubel" : ""}">
+    ${mascot(gut ? "happy" : "think")}
+    <div class="bigword">${HER.richtig} von ${HER.liste.length}</div>
+    <p>Heraushören</p>
+  </div>
+  <div class="foot">
+    <button class="cta" id="mehr">Noch eine Runde, andere Sätze</button>
+    <button class="cta ghost" id="w">Fertig</button>
+  </div>`;
+  document.getElementById("mehr").onclick = () => herRunde(HER.runde + 1);
+  document.getElementById("w").onclick = herStart;
+  if(gut) konfetti(false);
+}
+
 /* ---------- 4b2. HÖRECKE ---------- */
 let PL = { set:null, list:[], i:0, playing:false, step:0 }, plToken = 0;
 
@@ -4239,6 +4966,9 @@ function buildList(set){
 
 function hoerScreen(set){
   stopClip(); plToken++;
+  const m = S.hMode || "spr";
+  if(m === "dlg") return dlgListe();
+  if(m === "her") return herStart();
   PL = { set: (set === undefined ? PL.set : set), list: [], i:0, playing:false, step:0 };
   PL.list = buildList(PL.set);
   hoerRender();
@@ -4260,6 +4990,8 @@ function hoerRender(){
       Auf diesem Gerät ist keine türkische Stimme installiert. Wir lesen türkische Sätze
       bewusst nicht mit einer deutschen Stimme vor, sonst würdest du dir eine falsche
       Aussprache angewöhnen. Lesen und Merken funktioniert weiterhin.</div>`}
+    ${hoerKopf("spr")}
+    ${tempoLeiste()}
     <div class="chips">
       <button class="${PL.set===null?"on":""}" data-set="all">Alle</button>
       ${BONUS.map((b,ui)=>`<button class="${PL.set===ui?"on":""}" data-set="${ui}">${esc(b.t)}</button>`).join("")}
@@ -4298,6 +5030,8 @@ function hoerRender(){
   app.querySelectorAll("[data-set]").forEach(b=>{
     b.onclick = () => hoerScreen(b.dataset.set === "all" ? null : +b.dataset.set);
   });
+  wireHoerKopf();
+  wireTempo(hoerRender);
 }
 
 function plGo(d){
