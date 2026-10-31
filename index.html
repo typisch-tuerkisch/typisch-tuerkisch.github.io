@@ -112,6 +112,20 @@
   .themerow .tt{flex:1;min-width:0;display:block}
   .themerow .tt em{display:block;font-style:normal;font-size:13.5px;font-weight:700;
                    color:var(--text);opacity:.78;line-height:1.4;margin:3px 0 4px}
+  .weiter.vstk2{border-left-color:var(--gold)}
+  .weiter.vstk2 .wk{color:var(--gold)}
+  .vst{padding:26px 20px 10px}
+  .vstk{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+        margin-bottom:12px}
+  .vstf{margin:0 0 22px;font-size:21px;font-weight:900;line-height:1.38;letter-spacing:-.3px}
+  .sqo.big button{padding:15px 16px;font-size:15.5px}
+  .vstw{margin-top:20px;background:var(--surface);border:1px solid var(--line);
+        border-radius:14px;padding:15px;font-size:14.5px;font-weight:600;line-height:1.55;
+        color:var(--muted)}
+  .vstw b{display:block;color:var(--text);font-weight:900;margin-bottom:4px}
+  .vstmehr{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--muted);opacity:.8}
+  .vsthint{margin:0;text-align:center;font-size:13px;font-weight:700;color:var(--muted)}
+
   .weiter.wdh{border-left-color:var(--green)}
   .weiter.wdh .wk{color:var(--green-dark)}
   .wst{display:flex;gap:8px;margin:0 0 4px}
@@ -2668,6 +2682,8 @@ const TOUR = [
     x:"In jeder Einheit wartet eine kurze Übung, die sich jeden Tag ändert. Zehn Fragen aus dieser Einheit, ohne Bestehen oder Durchfallen. Gut für die Tage, an denen du wenig Zeit hast." },
   { ic:"leaf", c:"#2f9e5c", t:"Leise im Hintergrund",
     x:"Im Hintergrund läuft ein Waldklang, ganz leise. In deinem Profil kannst du ihn lauter oder leiser stellen, auf Musik umschalten oder ganz ausmachen." },
+  { ic:"quest", c:"#c9931f", t:"Verstehst du Türkisch?",
+    x:"Eine kurze Szene, und du entscheidest, was gemeint ist. Nicht die Übersetzung zählt, sondern was eine Türkin damit sagen will. Danach erfährst du, warum." },
   { ic:"eye", c:"#1d7fc0", t:"Die Kulturecke",
     x:"Texte über Bräuche, Glauben und Aberglaube, zum Lesen statt zum Üben. Dazu leise Naturgeräusche, und ein Lesezeichen, damit du später weiterliest." },
   { ic:"phones", c:"#c9931f", t:"Die Hörecke",
@@ -2834,6 +2850,14 @@ function home(){
       </button>`;
     })()}
     ${(()=>{
+      const o = vstOffen().length, g = vstAlle().length;
+      return `<button class="weiter vstk2" id="vstBtn">
+        <span class="wk">Verstehst du Türkisch?</span>
+        <span class="wt">Was meint die Person wirklich?</span>
+        <span class="wu">${o ? o + " von " + g + " Situationen offen" : "Alle einmal geschafft, gern noch einmal"}</span>
+      </button>`;
+    })()}
+    ${(()=>{
       const f = faellige().length;
       if(!f) return "";
       return `<button class="weiter wdh" id="wdhBtn">
@@ -2863,6 +2887,8 @@ function home(){
   if(wb) wb.onclick = () => { const n = naechsteOffene(); if(n >= 0) startLesson(n); };
   const wd = document.getElementById("wdhBtn");
   if(wd) wd.onclick = startWdh;
+  const vb = document.getElementById("vstBtn");
+  if(vb) vb.onclick = startVst;
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
 }
 
@@ -3223,6 +3249,113 @@ function kulturRead(ti, scrollTo){
   }
 }
 function leaveRead(){}
+
+
+/* ---------- 4b3. VERSTEHST DU TÜRKISCH? ----------
+   Eigene Runde aus den Situationen der Kulturecke. Nicht
+   die Übersetzung wird gefragt, sondern was gemeint ist. */
+const VST_N = 6;
+let V = null;
+
+function vstAlle(){
+  const out = [];
+  KULTUR.forEach((th, ti) => th.cards.forEach((c, ci) => {
+    if(c.sq) out.push({ ti, ci });
+  }));
+  return out;
+}
+const vstOffen = () => vstAlle().filter(a => !kFertig(a.ti, a.ci));
+
+function startVst(){
+  const offen = vstOffen(), alle = vstAlle();
+  const quelle = offen.length ? offen : alle;
+  if(!quelle.length){ home(); return; }
+  V = { liste: shuffle(quelle.slice()).slice(0, Math.min(VST_N, quelle.length)),
+        i: 0, richtig: 0, xp: 0, t0: Date.now(), antwort: null };
+  vstRender();
+}
+
+function vstRender(){
+  const a = V.liste[V.i];
+  if(!a) return vstResult();
+  const th = KULTUR[a.ti], c = th.cards[a.ci], sq = c.sq;
+  const fertig = V.antwort !== null;
+  const ok = fertig && V.antwort === sq.r;
+  app.innerHTML = `<div class="lessbar">
+      <button class="x" id="quit">✕</button>
+      <div class="bar"><i style="width:${Math.round(V.i / V.liste.length * 100)}%"></i></div>
+      <div class="stat gem">${svgIcon("eye")}${V.i + 1}/${V.liste.length}</div>
+    </div>
+    <div class="vst">
+      <div class="vstk" style="color:${th.c}">Typisch Türkisch · ${esc(th.t)}</div>
+      <p class="vstf">${esc(sq.f)}</p>
+      <div class="sqo big">${sq.o.map((o, oi) => {
+        let cls = "";
+        if(fertig) cls = oi === sq.r ? "gut" : (oi === V.antwort ? "schlecht" : "");
+        return `<button data-oi="${oi}" class="${cls}" ${fertig ? "disabled" : ""}>${esc(o)}</button>`;
+      }).join("")}</div>
+      ${fertig ? `<div class="vstw">
+        <b>${ok ? "Genau so ist es." : "Nicht ganz."}</b>
+        ${esc(sq.w)}
+        <div class="vstmehr">${esc(c.h)} · ${esc(c.tr)}</div>
+      </div>` : ""}
+    </div>
+    <div class="foot">
+      ${fertig
+        ? `<button class="cta" id="next">${V.i + 1 < V.liste.length ? "Weiter" : "Fertig"}</button>
+           <button class="cta ghost" id="lesen">Den ganzen Text lesen</button>`
+        : `<p class="vsthint">Wähle, was die Person meint</p>`}
+    </div>`;
+
+  document.getElementById("quit").onclick = home;
+  if(!fertig){
+    app.querySelectorAll("[data-oi]").forEach(b=>{
+      b.onclick = () => {
+        V.antwort = +b.dataset.oi;
+        const richtig = V.antwort === sq.r;
+        sfx(richtig ? "right" : "wrong");
+        if(c.tr) wortAntwort(c.tr, richtig);
+        if(richtig){
+          V.richtig++;
+          if(!S.kg) S.kg = {};
+          if(!S.kg[kSchl(a.ti, a.ci)]){ S.kg[kSchl(a.ti, a.ci)] = true; }
+          V.xp += 15; addXp(15);
+        }
+        save(); vstRender();
+      };
+    });
+  } else {
+    document.getElementById("next").onclick = () => { V.i++; V.antwort = null; vstRender(); };
+    document.getElementById("lesen").onclick = () => kulturRead(a.ti, a.ci);
+  }
+}
+
+function vstResult(){
+  const n = V.liste.length, alle = V.richtig === n;
+  const rest = vstOffen().length;
+  sfx("done"); save();
+  app.innerHTML = `<div class="result${alle ? " jubel" : ""}">
+    ${mascot("happy")}
+    <div class="bigword" style="color:var(--red);text-shadow:none">${V.richtig} von ${n}</div>
+    <p>Verstehst du Türkisch?</p>
+    <div class="scores">
+      <div class="score gold"><div class="ic">${svgIcon("tea")}</div><div class="v" id="cnt">+0</div><div class="k">Çay</div></div>
+      <div class="score blue"><div class="ic">${svgIcon("clock")}</div><div class="v">${fmtTime(V.t0)}</div><div class="k">Zeit</div></div>
+    </div>
+    <p style="margin-top:20px">${rest
+      ? "Es warten noch " + rest + " Situationen."
+      : "Du hast alle Situationen einmal richtig gehabt. Sie kommen über die Wörter wieder zu dir."}</p>
+  </div>
+  <div class="foot">
+    <button class="cta red" id="cont">Zur Übersicht</button>
+    ${rest ? `<button class="cta ghost" id="mehr">Noch eine Runde</button>` : ""}
+  </div>`;
+  document.getElementById("cont").onclick = home;
+  const m = document.getElementById("mehr");
+  if(m) m.onclick = startVst;
+  hochzaehlen("cnt", V.xp, "+");
+  if(alle) konfetti(false);
+}
 
 /* ---------- 4b2. HÖRECKE ---------- */
 let PL = { set:null, list:[], i:0, playing:false, step:0 }, plToken = 0;
