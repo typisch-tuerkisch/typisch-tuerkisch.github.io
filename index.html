@@ -154,6 +154,17 @@
   .tp b{display:block;font-size:11px;font-weight:800;letter-spacing:1.1px;
         text-transform:uppercase;margin-bottom:5px;opacity:.75}
 
+  .reiter{display:flex;gap:4px;padding:2px 12px 10px;border-bottom:1px solid var(--line);
+          margin-bottom:14px;overflow-x:auto}
+  .reiter button{flex:1;min-width:76px;display:flex;flex-direction:column;align-items:center;
+                 gap:4px;background:none;padding:8px 4px 9px;border-bottom:2.5px solid transparent;
+                 color:var(--muted);font-size:11.5px;font-weight:800;line-height:1.1}
+  .reiter button span{white-space:nowrap}
+  .reiter button.on{color:var(--red);border-bottom-color:var(--red)}
+  .reiter .ic-svg{width:20px;height:20px}
+  .themerow.zu{opacity:1}
+  .themerow.zu b{color:var(--muted)}
+
   .vlab{font-size:14.5px;font-weight:800}
   .klangwahl{display:flex;gap:7px;margin-bottom:9px}
   .klangwahl button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
@@ -2196,7 +2207,7 @@ const CODES = ["TT-7F3K9","TT-2M8Q4","TT-9X1V6","TT-4B7N2","TT-6J5R8",
 const UKEY = "tt_users_v2", AKEY = "tt_active_v2", OLDKEY = "tt_progress_v1";
 const todayStr = () => new Date().toISOString().slice(0,10);
 
-const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},kg:{},klang:"wald",kVol:25,sVol:70,
+const fresh = () => ({done:[],xp:0,streak:0,lastDay:null,dayXp:0,ueb:{},w:{},kg:{},kr:{},klang:"wald",kVol:25,sVol:70,
                       pro:false, passed:[], bonusDone:[], saved:[], sound:true, voice:true,
                       mark:null, amb:null, openUnits:null, tourSeen:false, cv:CONTENT_VERSION});
 
@@ -2254,6 +2265,11 @@ function unlockAll(d){
     if(d.passed.indexOf(ui) < 0) d.passed.push(ui);
   });
   d.pro = true;
+  /* Auch die Kulturecke und die Situationen aufschließen. */
+  d.kr = d.kr || {}; d.kg = d.kg || {};
+  KULTUR.forEach((th,ti)=>th.cards.forEach((c,ci)=>{
+    d.kr[ti+"-"+ci] = true; d.kg[ti+"-"+ci] = true;
+  }));
   if(!d.xp) d.xp = 1500;
 }
 function saveAll(){
@@ -2747,6 +2763,7 @@ function profileSheet(){
     <button class="row" id="tgVoice"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${S.voice?svgIcon("mic","mini"):svgIcon("mute","mini")}</span><span>Türkische Stimme ${S.voice?"an":"aus"}</span></button>
     <button class="row" id="backup"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>Fortschritt sichern oder laden</span></button>
     <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
+    <button class="row" id="merk"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Merkliste, ${S.saved.length}</span></button>
     <button class="row" id="tour"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("route","mini")}</span><span>Rundgang noch einmal ansehen</span></button>
     <button class="row" data-sw="__new__"><span class="ava sm">+</span><span>Neues Profil</span></button>
     <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("exit","mini")}</span><span>Abmelden</span></button>
@@ -2775,6 +2792,7 @@ function profileSheet(){
   el.querySelector("#voiceHelp").onclick = () => { kill(); voiceHelpScreen(); };
   el.querySelector("#backup").onclick = () => { kill(); backupScreen(); };
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
+  el.querySelector("#merk").onclick = () => { kill(); savedScreen(); };
   el.querySelector("#out").onclick = () => { saveAll(); ACTIVE = null; S = fresh(); saveAll(); kill(); authScreen("login"); };
   el.querySelectorAll("[data-sw]").forEach(b=>{
     b.onclick = () => {
@@ -2872,6 +2890,30 @@ function naechsteOffene(){
   return -1;
 }
 
+/* ---------- REITER ----------
+   Vier Bereiche nebeneinander, jeder mit eigener Seite. */
+const REITER = [
+  ["lernen", "Lernen",    "puzzle", () => home()],
+  ["kultur", "Kulturecke","eye",    () => kulturScreen()],
+  ["vst",    "Verstehen", "quest",  () => vstScreen()],
+  ["hoer",   "Hörecke",   "phones", () => hoerScreen()]
+];
+
+function reiter(aktiv){
+  return `<div class="reiter">${REITER.map(([k,l,ic])=>
+    `<button class="${k===aktiv?"on":""}" data-reiter="${k}">${svgIcon(ic,"mini")}<span>${l}</span></button>`
+  ).join("")}</div>`;
+}
+
+function wireReiter(){
+  app.querySelectorAll("[data-reiter]").forEach(b=>{
+    b.onclick = () => {
+      const r = REITER.find(x => x[0] === b.dataset.reiter);
+      if(r) r[3]();
+    };
+  });
+}
+
 function home(){
   rollDay();
   const pct = Math.min(100, Math.round(S.dayXp/DAILY_GOAL*100));
@@ -2933,7 +2975,7 @@ function home(){
     path += `</div>`;
   });
 
-  app.innerHTML = topbar() + `
+  app.innerHTML = topbar() + reiter("lernen") + `
     <div class="hero">
       <div class="herorow">
         <img class="logo sm" src="img/logo-192.png" alt="">
@@ -2966,14 +3008,6 @@ function home(){
       </button>`;
     })()}
     ${(()=>{
-      const o = vstOffen().length, g = vstAlle().length;
-      return `<button class="weiter vstk2" id="vstBtn">
-        <span class="wk">Verstehst du Türkisch?</span>
-        <span class="wt">Was meint die Person wirklich?</span>
-        <span class="wu">${o ? o + " von " + g + " Situationen offen" : "Alle einmal geschafft, gern noch einmal"}</span>
-      </button>`;
-    })()}
-    ${(()=>{
       const f = faellige().length;
       if(!f) return "";
       return `<button class="weiter wdh" id="wdhBtn">
@@ -2982,17 +3016,11 @@ function home(){
         <span class="wu">Was zurückkommt, bleibt hängen</span>
       </button>`;
     })()}
-    <div class="homebtns">
-      <button id="kulturBtn">${svgIcon("eye","mini")} Kulturecke</button>
-      <button id="hoerBtn">${svgIcon("phones","mini")} Hörecke</button>
-      <button id="savedBtn">${svgIcon("scroll","mini")} ${S.saved.length}</button>
-    </div>
+
     <div class="path">${path}</div>`;
 
   document.getElementById("chip").onclick = profileSheet;
-  document.getElementById("savedBtn").onclick = savedScreen;
-  document.getElementById("kulturBtn").onclick = kulturScreen;
-  document.getElementById("hoerBtn").onclick = () => hoerScreen(null);
+  wireReiter();
   app.querySelectorAll("[data-u]").forEach(b=>{ b.onclick = () => toggleUnit(+b.dataset.u); });
   app.querySelectorAll("[data-les]").forEach(b=>{ b.onclick = () => startLesson(+b.dataset.les); });
   app.querySelectorAll("[data-bonus]").forEach(b=>{ b.onclick = () => bonusScreen(+b.dataset.bonus, 0); });
@@ -3003,8 +3031,6 @@ function home(){
   if(wb) wb.onclick = () => { const n = naechsteOffene(); if(n >= 0) startLesson(n); };
   const wd = document.getElementById("wdhBtn");
   if(wd) wd.onclick = startWdh;
-  const vb = document.getElementById("vstBtn");
-  if(vb) vb.onclick = startVst;
   app.querySelectorAll("[data-pay]").forEach(b=>{ b.onclick = paywall; });
 }
 
@@ -3211,7 +3237,20 @@ function wireAmb(){
 }
 
 /* Ein Kulturstück je Tag, für alle gleich gemischt nach Datum. */
-const kSchl  = (ti,ci) => ti + "-" + ci;
+const kSchl   = (ti,ci) => ti + "-" + ci;
+const kGelesen = (ti,ci) => !!(S.kr && S.kr[kSchl(ti,ci)]);
+/* Ein Thema öffnet sich, wenn vom Thema davor genug verstanden ist. */
+const K_SCHWELLE = 0.7;
+function kThemaFertig(ti){
+  const th = KULTUR[ti]; if(!th) return false;
+  const g = th.cards.filter((c,ci)=>kFertig(ti,ci)).length;
+  return g >= Math.ceil(th.cards.length * K_SCHWELLE);
+}
+const kThemaOffen = ti => ti === 0 || kThemaFertig(ti-1);
+function kLesen(ti,ci){
+  if(!S.kr) S.kr = {};
+  if(!S.kr[kSchl(ti,ci)]){ S.kr[kSchl(ti,ci)] = true; save(); }
+}
 const kFertig = (ti,ci) => !!(S.kg && S.kg[kSchl(ti,ci)]);
 function kZahl(){
   let g = 0, n = 0;
@@ -3221,7 +3260,10 @@ function kZahl(){
 
 function kulturHeute(tag){
   const alle = [];
-  KULTUR.forEach((th, ti) => th.cards.forEach((c, ci) => alle.push({ ti, ci })));
+  KULTUR.forEach((th, ti) => {
+    if(!kThemaOffen(ti)) return;          /* nur aus offenen Themen */
+    th.cards.forEach((c, ci) => alle.push({ ti, ci }));
+  });
   if(!alle.length) return null;
   /* Was noch offen ist, kommt zuerst dran. */
   const offen = alle.filter(a => !kFertig(a.ti, a.ci));
@@ -3234,7 +3276,7 @@ function kulturHeute(tag){
 
 function kulturScreen(){
   const m = S.mark;
-  app.innerHTML = topbar() + `
+  app.innerHTML = topbar() + reiter("kultur") + `
     <div class="hero">
       <h1>Kulturecke</h1>
       <p>Wie in der Türkei wirklich gelebt, gesprochen und geglaubt wird. Zum Lesen, in deinem Tempo.</p>
@@ -3255,18 +3297,24 @@ function kulturScreen(){
     </div>` : ""}
     <div class="read" style="padding-top:0">
       ${KULTUR.map((th,ti)=>{
+        const auf = kThemaOffen(ti);
         const koeder = (th.cards.find(c=>c.q) || {}).q || "";
-        return `<button class="themerow" data-th="${ti}" style="border-left-color:${th.c}">
-        <span class="ti" style="color:${th.c};background:${th.c}1a">${svgIcon(th.ic)}</span>
+        const g = th.cards.filter((c,ci)=>kFertig(ti,ci)).length;
+        const noetig = Math.ceil(th.cards.length * K_SCHWELLE);
+        return `<button class="themerow ${auf?"":"zu"}" ${auf?`data-th="${ti}"`:"disabled"}
+          style="border-left-color:${auf?th.c:"var(--line)"}">
+        <span class="ti" style="${auf?`color:${th.c};background:${th.c}1a`:"color:var(--muted);background:var(--surface-2)"}">${auf?svgIcon(th.ic):svgIcon("lock")}</span>
         <span class="tt"><b>${esc(th.t)}</b>
-          ${koeder ? `<em>${esc(koeder)}</em>` : ""}
-          <small>${th.cards.filter((c,ci)=>kFertig(ti,ci)).length} von ${th.cards.length} verstanden</small></span>
+          ${auf
+            ? `${koeder ? `<em>${esc(koeder)}</em>` : ""}
+               <small>${g} von ${th.cards.length} verstanden</small>`
+            : `<small>Erst ${noetig} Stücke aus ${esc(KULTUR[ti-1].t)} verstehen</small>`}</span>
         ${m && m.t===ti ? `<span class="mk">${svgIcon("mark","mini")}</span>` : ""}
       </button>`;}).join("")}
     </div>
-    <div class="foot"><button class="cta ghost" id="back">Zurück zur Übersicht</button></div>`;
+    <div style="height:20px"></div>`;
   document.getElementById("chip").onclick = profileSheet;
-  document.getElementById("back").onclick = home;
+  wireReiter();
   const c = document.getElementById("cont");
   if(c) c.onclick = () => kulturRead(m.t, m.c);
   const k2 = document.getElementById("kmBtn2");
@@ -3322,7 +3370,7 @@ function kulturRead(ti, scrollTo){
     </div>
     <div class="foot"><button class="cta ghost" id="back">Zur Kulturecke</button></div>`;
 
-  document.getElementById("quit").onclick = () => { leaveRead(); home(); };
+  document.getElementById("quit").onclick = () => { leaveRead(); kulturScreen(); };
   document.getElementById("back").onclick = () => { leaveRead(); kulturScreen(); };
   wireAmb();
   app.querySelectorAll("[data-sq]").forEach(b=>{
@@ -3332,6 +3380,7 @@ function kulturRead(ti, scrollTo){
       if(!c.sq || !box || box.dataset.fertig) return;
       box.dataset.fertig = "1";
       const ok = oi === c.sq.r;
+      kLesen(ti, ci);
       box.querySelectorAll("[data-sq]").forEach((x,xi)=>{
         x.disabled = true;
         if(xi === c.sq.r) x.classList.add("gut");
@@ -3359,6 +3408,21 @@ function kulturRead(ti, scrollTo){
     };
   });
   klangAn();
+  /* Was wirklich auf dem Schirm war, gilt als gelesen. */
+  try{
+    const beob = new IntersectionObserver(eintraege=>{
+      eintraege.forEach(e=>{
+        if(e.isIntersecting){
+          const ci = +e.target.id.replace("sec","");
+          kLesen(ti, ci);
+          beob.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.35 });
+    app.querySelectorAll(".sec").forEach(el => beob.observe(el));
+  }catch(e){
+    th.cards.forEach((c,ci)=>kLesen(ti,ci));
+  }
   if(scrollTo !== null && scrollTo !== undefined){
     const el = document.getElementById("sec"+scrollTo);
     if(el) setTimeout(()=>el.scrollIntoView({block:"start"}), 60);
@@ -3373,14 +3437,48 @@ function leaveRead(){}
 const VST_N = 6;
 let V = null;
 
+/* Gefragt wird nur, was in der Kulturecke schon erklärt wurde. */
 function vstAlle(){
   const out = [];
   KULTUR.forEach((th, ti) => th.cards.forEach((c, ci) => {
-    if(c.sq) out.push({ ti, ci });
+    if(c.sq && kGelesen(ti, ci)) out.push({ ti, ci });
   }));
   return out;
 }
+function vstGesamt(){
+  let n = 0;
+  KULTUR.forEach(th => th.cards.forEach(c => { if(c.sq) n++; }));
+  return n;
+}
 const vstOffen = () => vstAlle().filter(a => !kFertig(a.ti, a.ci));
+
+function vstScreen(){
+  const offen = vstOffen().length, da = vstAlle().length, g = vstGesamt();
+  const verstanden = da - offen;
+  const pz = g ? Math.round(da / g * 100) : 0;
+  app.innerHTML = topbar() + reiter("vst") + `
+    <div class="hero">
+      <h1>Verstehst du Türkisch?</h1>
+      <p>Eine kurze Szene, und du entscheidest, was gemeint ist. Nicht die Übersetzung zählt, sondern was die Person damit sagen will.</p>
+    </div>
+    <div class="fswrap">
+      <div class="fscard">
+        ${balken("Freigeschaltet", da, g, "var(--gold)")}
+        ${balken("Verstanden", verstanden, g, "var(--green)")}
+        <p class="fsnote">Eine Situation kommt erst, wenn du das Stück in der Kulturecke gelesen hast. So wird nie gefragt, was dir noch niemand erklärt hat.</p>
+      </div>
+      ${da ? `<button class="cta red" id="go" style="margin-top:16px">${offen ? "Runde starten" : "Noch eine Runde"}</button>`
+           : `<button class="cta red" id="zukultur" style="margin-top:16px">Zur Kulturecke</button>`}
+      ${da ? `<p class="fsend">${offen ? offen + " von " + da + " freigeschalteten Situationen sind noch offen." : "Du hattest alle freigeschalteten Situationen schon richtig. Lies weiter in der Kulturecke, dann kommen neue dazu."}</p>`
+           : `<p class="fsend">Lies zuerst ein Stück in der Kulturecke. Danach wartet hier die passende Situation.</p>`}
+    </div>`;
+  document.getElementById("chip").onclick = profileSheet;
+  wireReiter();
+  const go = document.getElementById("go");
+  if(go) go.onclick = startVst;
+  const zk = document.getElementById("zukultur");
+  if(zk) zk.onclick = kulturScreen;
+}
 
 function startVst(){
   const offen = vstOffen(), alle = vstAlle();
@@ -3423,7 +3521,7 @@ function vstRender(){
         : `<p class="vsthint">Wähle, was die Person meint</p>`}
     </div>`;
 
-  document.getElementById("quit").onclick = home;
+  document.getElementById("quit").onclick = vstScreen;
   if(!fertig){
     app.querySelectorAll("[data-oi]").forEach(b=>{
       b.onclick = () => {
@@ -3466,7 +3564,7 @@ function vstResult(){
     <button class="cta red" id="cont">Zur Übersicht</button>
     ${rest ? `<button class="cta ghost" id="mehr">Noch eine Runde</button>` : ""}
   </div>`;
-  document.getElementById("cont").onclick = home;
+  document.getElementById("cont").onclick = vstScreen;
   const m = document.getElementById("mehr");
   if(m) m.onclick = startVst;
   hochzaehlen("cnt", V.xp, "+");
@@ -3499,7 +3597,7 @@ function hoerRender(){
   const stepTxt = !PL.playing ? "Bereit" :
     (PL.step === 1 ? "Türkisch" : PL.step === 2 ? "Bedeutung" : "Wann man es sagt");
 
-  app.innerHTML = topbar() + `
+  app.innerHTML = topbar() + reiter("hoer") + `
     <div class="hero" style="padding-bottom:12px">
       <h1>Hörecke</h1>
       <p>Zuhören statt tippen. Sprichwort, Bedeutung und wann man es sagt, eins nach dem anderen.</p>
@@ -3533,6 +3631,7 @@ function hoerRender(){
 
   const g = id => document.getElementById(id);
   g("chip").onclick = profileSheet;
+  wireReiter();
   g("back").onclick = () => { stopClip(); plToken++; home(); };
   g("play").onclick = () => PL.playing ? plStop() : plPlay();
   g("prev").onclick = () => plGo(-1);
