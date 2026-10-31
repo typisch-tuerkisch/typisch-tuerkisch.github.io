@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+<!--
+  Typisch Türkisch
+  © 2026 Gözde Özler. Alle Rechte vorbehalten.
+
+  Die Lektionen, Wortlisten, Kulturtexte, Dialoge und Sprichwort-
+  erklärungen in dieser Datei sind eigene Werke und urheberrechtlich
+  geschützt. Sie dürfen nicht kopiert, weiterverbreitet oder in eine
+  andere App übernommen werden, auch nicht in überarbeiteter Form.
+  Für Anfragen: gozdeeozler@gmail.com
+-->
 <meta charset="utf-8">
+<meta name="author" content="Gözde Özler">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Typisch Türkisch</title>
 <link rel="icon" href="img/logo-192.png">
@@ -3048,7 +3059,7 @@ function profileSheet(){
       : (KONTO
         ? "Dein Fortschritt ist gesichert und steht auf jedem Gerät zur Verfügung, auf dem du dich anmeldest."
         : "Dein Fortschritt liegt auf diesem Gerät. Mit einem Konto kannst du auf einem anderen Handy weiterlernen.")}<br>
-      Stand ${BUILD} · ${TOTAL} Lektionen · ${BONUS.reduce((n,b)=>n+b.cards.length,0)} Sprichwörter · ${KULTUR.reduce((n,k)=>n+k.cards.length,0)} Kulturtexte</p>
+      © 2026 Gözde Özler · Stand ${BUILD} · ${TOTAL} Lektionen · ${BONUS.reduce((n,b)=>n+b.cards.length,0)} Sprichwörter · ${KULTUR.reduce((n,k)=>n+k.cards.length,0)} Kulturtexte</p>
     <button class="cta ghost" id="close">Schließen</button>
   </div>`;
   document.body.appendChild(el);
@@ -3382,6 +3393,11 @@ function rechtScreen(seite){
     <div class="sec"><h3>Streitbeilegung</h3>
       <p>Wir nehmen an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
       nicht teil und sind dazu auch nicht verpflichtet.</p></div>
+    <div class="sec"><h3>Urheberrecht</h3>
+      <p>© 2026 ${esc(a.name)}. Die Lektionen, Wortlisten, Kulturtexte, Dialoge und
+      Erklärungen dieser App sind eigene Werke und urheberrechtlich geschützt.
+      Sie dürfen nicht kopiert, weitergegeben oder in eine andere App übernommen
+      werden, auch nicht in bearbeiteter Form. Für Anfragen schreib an ${esc(a.mail)}.</p></div>
     <div class="sec"><h3>Schrift</h3>
       <p>Diese App verwendet die Schrift Nunito unter der SIL Open Font License 1.1.
       Die Schriftdateien liegen auf unserem eigenen Server.</p></div>`,
