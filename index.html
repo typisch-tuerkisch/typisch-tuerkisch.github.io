@@ -7,9 +7,41 @@
 <link rel="icon" href="img/logo-192.png">
 <link rel="apple-touch-icon" href="img/logo-192.png">
 <meta name="theme-color" content="#fc4847">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* Nunito liegt im Ordner fonts. Es wird nichts von Google geladen,
+   damit keine Besucherdaten an Dritte gehen.
+   Nunito, SIL Open Font License 1.1, siehe fonts/LICENSE-Nunito.txt */
+@font-face{font-family:Nunito;font-style:normal;font-weight:400;font-display:swap;
+  src:url(fonts/nunito-latin-ext-400-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Nunito;font-style:normal;font-weight:400;font-display:swap;
+  src:url(fonts/nunito-latin-400-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Nunito;font-style:normal;font-weight:600;font-display:swap;
+  src:url(fonts/nunito-latin-ext-600-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Nunito;font-style:normal;font-weight:600;font-display:swap;
+  src:url(fonts/nunito-latin-600-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Nunito;font-style:normal;font-weight:700;font-display:swap;
+  src:url(fonts/nunito-latin-ext-700-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Nunito;font-style:normal;font-weight:700;font-display:swap;
+  src:url(fonts/nunito-latin-700-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Nunito;font-style:normal;font-weight:800;font-display:swap;
+  src:url(fonts/nunito-latin-ext-800-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Nunito;font-style:normal;font-weight:800;font-display:swap;
+  src:url(fonts/nunito-latin-800-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:Nunito;font-style:normal;font-weight:900;font-display:swap;
+  src:url(fonts/nunito-latin-ext-900-normal.woff2) format("woff2");
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:Nunito;font-style:normal;font-weight:900;font-display:swap;
+  src:url(fonts/nunito-latin-900-normal.woff2) format("woff2");
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+</style>
 <style>
   :root{
     --bg:#ffffff;
@@ -2281,6 +2313,55 @@ function unlockAll(d){
    Feld, damit nichts verloren geht. */
 let KONTO = null, syncZeit = null, syncLaeuft = false, syncStand = "";
 
+/* ---------- WOLKE, erst auf Abruf ---------- */
+/* Firebase wird absichtlich nicht beim Oeffnen der Seite geladen.
+   Ohne Konto verlaesst damit nichts das Geraet. Geladen wird es erst,
+   wenn jemand ein Konto anlegt, sich anmeldet oder schon angemeldet war. */
+const WOLKE_CFG = {
+  apiKey: "AIzaSyDBt37iR5RVWgKzw_JhAq4R3I94ZSFJG5s",
+  authDomain: "typisch-tuerkisch.firebaseapp.com",
+  projectId: "typisch-tuerkisch",
+  storageBucket: "typisch-tuerkisch.firebasestorage.app",
+  messagingSenderId: "1023810907470",
+  appId: "1:1023810907470:web:7a7b5ce6fd0c91a221821f"
+};
+let wolkeVersuch = null, kontoWartet = false;
+function wolkeLaden(){
+  if(window.CLOUD) return Promise.resolve(window.CLOUD);
+  if(wolkeVersuch) return wolkeVersuch;
+  const B = "https://www.gstatic.com/firebasejs/12.2.1/";
+  wolkeVersuch = (async () => {
+    try{
+      const { initializeApp } = await import(B + "firebase-app.js");
+      const A = await import(B + "firebase-auth.js");
+      const F = await import(B + "firebase-firestore.js");
+      const anw  = initializeApp(WOLKE_CFG);
+      const auth = A.getAuth(anw);
+      const db   = F.getFirestore(anw);
+      try{ await A.setPersistence(auth, A.browserLocalPersistence); }catch(e){}
+      window.CLOUD = {
+        da: true,
+        beobachten:   cb => A.onAuthStateChanged(auth, cb),
+        registrieren: (mail, pw) => A.createUserWithEmailAndPassword(auth, mail, pw),
+        anmelden:     (mail, pw) => A.signInWithEmailAndPassword(auth, mail, pw),
+        abmelden:     () => A.signOut(auth),
+        passwortMail: mail => A.sendPasswordResetEmail(auth, mail),
+        laden: async uid => { const d = await F.getDoc(F.doc(db, "nutzer", uid)); return d.exists() ? d.data() : null; },
+        speichern: (uid, daten) => F.setDoc(F.doc(db, "nutzer", uid), daten),
+        loeschen: async uid => {
+          /* Erst der Fortschritt, dann das Konto selbst. */
+          try{ await F.deleteDoc(F.doc(db, "nutzer", uid)); }catch(e){}
+          await A.deleteUser(auth.currentUser);
+        }
+      };
+    }catch(e){
+      window.CLOUD = { da: false, fehler: String((e && e.message) || e) };
+    }
+    return window.CLOUD;
+  })();
+  return wolkeVersuch;
+}
+
 /* Diese Werte gehören zum Gerät, nicht zum Konto. */
 const GERAET_FELDER = ["klang","kVol","sVol","sound","voice","amb","musik","mVol","openUnits"];
 
@@ -2806,6 +2887,7 @@ function authScreen(mode){
     `}
 
     <div class="switchline" style="margin-top:20px"><button id="kto">Mit Konto anmelden, auf allen Geräten</button></div>
+    <div class="switchline" style="margin-top:10px"><button id="rechtlink">Impressum und Datenschutz</button></div>
     <div class="switchline" style="margin-top:10px"><button id="guest">Ohne Profil weiterlernen</button></div>
   </div>`;
 
@@ -2821,6 +2903,7 @@ function authScreen(mode){
   if(g("toLogin")) g("toLogin").onclick = () => authScreen("login");
   if(g("toNew")) g("toNew").onclick = () => authScreen("new");
   if(g("kto")) g("kto").onclick = () => kontoScreen();
+  if(g("rechtlink")) g("rechtlink").onclick = () => rechtScreen("impressum");
   if(g("guest")) g("guest").onclick = () => {
     if(!USERS["__gast"]) USERS["__gast"] = {name:"Gast", pin:"", data:fresh()};
     ACTIVE = "__gast"; S = USERS[ACTIVE].data; saveAll(); enterApp();
@@ -2875,10 +2958,13 @@ function profileSheet(){
     <button class="row" id="voiceHelp"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("quest","mini")}</span><span>${canSpeakTr()?"Türkische Stimme ist installiert":"Türkische Stimme einrichten"}</span></button>
     <button class="row" id="konto"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("disk","mini")}</span><span>${KONTO ? "Konto: " + esc(KONTO.email || "") : "Konto, auf allen Geräten"}</span></button>
     <button class="row" id="merk"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Merkliste, ${S.saved.length}</span></button>
+    <button class="row" id="recht"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("scroll","mini")}</span><span>Impressum, Datenschutz, Widerruf</span></button>
     <button class="row" id="tour"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("route","mini")}</span><span>Rundgang noch einmal ansehen</span></button>
     <button class="row" data-sw="__new__"><span class="ava sm">+</span><span>Neues Profil</span></button>
     <button class="row" id="out"><span class="ava sm" style="background:var(--surface);color:var(--muted)">${svgIcon("exit","mini")}</span><span>Abmelden</span></button>
-    <p class="note">Dein Fortschritt liegt auf diesem Gerät. Auf einem anderen Handy startest du neu.<br>
+    <p class="note">${KONTO
+      ? "Dein Fortschritt ist gesichert und steht auf jedem Gerät zur Verfügung, auf dem du dich anmeldest."
+      : "Dein Fortschritt liegt auf diesem Gerät. Mit einem Konto kannst du auf einem anderen Handy weiterlernen."}<br>
       Stand ${BUILD} · ${TOTAL} Lektionen · ${BONUS.reduce((n,b)=>n+b.cards.length,0)} Sprichwörter · ${KULTUR.reduce((n,k)=>n+k.cards.length,0)} Kulturtexte</p>
     <button class="cta ghost" id="close">Schließen</button>
   </div>`;
@@ -2905,6 +2991,7 @@ function profileSheet(){
   el.querySelector("#tour").onclick = () => { kill(); tourScreen(0); };
   el.querySelector("#merk").onclick = () => { kill(); savedScreen(); };
   el.querySelector("#konto").onclick = () => { kill(); kontoScreen(); };
+  el.querySelector("#recht").onclick = () => { kill(); rechtScreen("impressum"); };
   el.querySelector("#out").onclick = () => { saveAll(); ACTIVE = null; S = fresh(); saveAll(); kill(); authScreen("login"); };
   el.querySelectorAll("[data-sw]").forEach(b=>{
     b.onclick = () => {
@@ -2970,6 +3057,32 @@ function tourScreen(i){
 
 /* ---------- 3b2. KONTOBILDSCHIRM ---------- */
 function kontoScreen(modus, hinweis){
+  /* Firebase kommt erst jetzt dazu, nicht beim Oeffnen der Seite. */
+  if(!window.CLOUD){
+    app.innerHTML = topbar() + `<div class="auth">
+      <h1 class="brand">Konto</h1>
+      <p class="lead">Einen Moment</p></div>`;
+    const c = document.getElementById("chip"); if(c) c.onclick = profileSheet;
+    wolkeLaden().then(() => {
+      if(wolkeDa() && !KONTO) wolkeStarten();
+      kontoScreen(modus, hinweis);
+    });
+    return;
+  }
+  /* Nach dem Neuladen braucht die Anmeldung einen Augenblick.
+     Wer angemeldet war, soll nicht kurz das Anmeldeformular sehen. */
+  if(wolkeDa() && !KONTO && ACTIVE && String(ACTIVE).indexOf("cloud_") === 0 && !kontoWartet){
+    kontoWartet = true;
+    app.innerHTML = topbar() + `<div class="auth">
+      <h1 class="brand">Dein Konto</h1>
+      <p class="lead">Einen Moment</p></div>`;
+    const c0 = document.getElementById("chip"); if(c0) c0.onclick = profileSheet;
+    let n = 0;
+    const warte = setInterval(() => {
+      if(KONTO || ++n > 24){ clearInterval(warte); kontoWartet = false; kontoScreen(modus, hinweis); }
+    }, 250);
+    return;
+  }
   const m = modus || (KONTO ? "stand" : "anmelden");
   if(!wolkeDa()){
     app.innerHTML = topbar() + `<div class="auth">
@@ -2993,6 +3106,7 @@ function kontoScreen(modus, hinweis){
       <button class="cta" id="jetzt">Jetzt abgleichen</button>
       <div class="err" id="e">${esc(hinweis || "")}</div>
       <div class="switchline" style="margin-top:18px"><button id="raus">Abmelden</button></div>
+      <div class="switchline" style="margin-top:10px"><button id="weg">Konto und Daten löschen</button></div>
       <div class="switchline" style="margin-top:10px"><button id="back">Zurück</button></div>
     </div>`;
     const g = id => document.getElementById(id);
@@ -3009,6 +3123,7 @@ function kontoScreen(modus, hinweis){
       ACTIVE = null; S = fresh(); saveAll();
       authScreen("login");
     };
+    g("weg").onclick = () => kontoLoeschenFragen();
     return;
   }
 
@@ -3065,6 +3180,42 @@ function kontoScreen(modus, hinweis){
   };
 }
 
+/* Loeschen ist nicht rueckholbar, darum einmal nachfragen. */
+function kontoLoeschenFragen(){
+  const el = document.createElement("div");
+  el.className = "sheet";
+  el.innerHTML = `<div class="inner">
+    <h3>Konto wirklich löschen</h3>
+    <p class="who">Deine E-Mail-Adresse und dein gesamter Lernfortschritt werden entfernt.
+    Das lässt sich nicht zurückholen.</p>
+    <button class="cta" id="doch" style="background:#c01616">Ja, alles löschen</button>
+    <div class="err" id="e"></div>
+    <button class="cta ghost" id="nein">Abbrechen</button>
+  </div>`;
+  document.body.appendChild(el);
+  const kill = () => el.remove();
+  el.onclick = e => { if(e.target === el) kill(); };
+  el.querySelector("#nein").onclick = kill;
+  el.querySelector("#doch").onclick = async () => {
+    const b = el.querySelector("#doch");
+    b.disabled = true; b.textContent = "Wird gelöscht";
+    try{
+      await CLOUD.loeschen(KONTO.uid);
+      const weg = ACTIVE;
+      KONTO = null; syncStand = "";
+      if(weg && USERS[weg]) delete USERS[weg];
+      ACTIVE = null; S = fresh(); saveAll();
+      kill(); authScreen("login");
+    }catch(err){
+      b.disabled = false; b.textContent = "Ja, alles löschen";
+      const c = (err && err.code) || "";
+      el.querySelector("#e").textContent = c.indexOf("requires-recent-login") >= 0
+        ? "Aus Sicherheitsgründen bitte einmal abmelden, neu anmelden und es dann noch einmal versuchen."
+        : kontoFehler(err);
+    }
+  };
+}
+
 function kontoFehler(err){
   const c = (err && err.code) || "";
   if(c.indexOf("email-already-in-use") >= 0) return "Zu dieser E-Mail gibt es schon ein Konto. Melde dich an.";
@@ -3075,6 +3226,186 @@ function kontoFehler(err){
   if(c.indexOf("too-many-requests") >= 0)    return "Zu viele Versuche. Warte einen Moment.";
   if(c.indexOf("network") >= 0)              return "Keine Verbindung. Bist du online?";
   return "Das hat nicht geklappt. Versuch es noch einmal.";
+}
+
+
+/* ---------- 3b3. RECHTLICHES ---------- */
+/* ACHTUNG, GÖZDE: Hier deine echten Angaben eintragen.
+   Solange hier BITTE_AUSFUELLEN steht, zeigt die App oben auf den
+   Rechtsseiten einen roten Hinweis, damit das nicht aus Versehen
+   so online geht. */
+const ANBIETER = {
+  name:    "BITTE_AUSFUELLEN",   /* Vor- und Nachname oder Firmenname */
+  strasse: "BITTE_AUSFUELLEN",   /* Strasse und Hausnummer */
+  ort:     "BITTE_AUSFUELLEN",   /* Postleitzahl und Ort */
+  land:    "Türkei",
+  mail:    "BITTE_AUSFUELLEN",   /* E-Mail, muss erreichbar sein */
+  telefon: "",                   /* freiwillig, leer lassen ist erlaubt */
+  ustid:   ""                    /* nur falls vorhanden */
+};
+const ANBIETER_FERTIG = () => !JSON.stringify(ANBIETER).includes("BITTE_AUSFUELLEN");
+
+const RECHT_SEITEN = [
+  ["impressum",  "Impressum"],
+  ["datenschutz","Datenschutz"],
+  ["widerruf",   "Widerruf"]
+];
+
+function rechtWarnung(){
+  return ANBIETER_FERTIG() ? "" : `<div class="warn" style="background:#ffe8e8;color:#a01212">
+    Hinweis für die Betreiberin: In dieser Fassung fehlen noch Name, Adresse und E-Mail.
+    Ohne diese Angaben darf die App nicht öffentlich angeboten werden.</div>`;
+}
+
+function rechtScreen(seite){
+  const akt = seite || "impressum";
+  const a = ANBIETER;
+  const anschrift = `${esc(a.name)}<br>${esc(a.strasse)}<br>${esc(a.ort)}<br>${esc(a.land)}`
+    + (a.telefon ? `<br>Telefon ${esc(a.telefon)}` : "")
+    + `<br>E-Mail ${esc(a.mail)}`
+    + (a.ustid ? `<br>Umsatzsteuer-Identifikationsnummer ${esc(a.ustid)}` : "");
+
+  const texte = {
+
+  impressum: `
+    <div class="sec"><h3>Anbieter</h3>
+      <p>Angaben nach § 5 Digitale-Dienste-Gesetz</p>
+      <p>${anschrift}</p></div>
+    <div class="sec"><h3>Verantwortlich für den Inhalt</h3>
+      <p>${esc(a.name)}, Anschrift wie oben.</p></div>
+    <div class="sec"><h3>Streitbeilegung</h3>
+      <p>Wir nehmen an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
+      nicht teil und sind dazu auch nicht verpflichtet.</p></div>
+    <div class="sec"><h3>Schrift</h3>
+      <p>Diese App verwendet die Schrift Nunito unter der SIL Open Font License 1.1.
+      Die Schriftdateien liegen auf unserem eigenen Server.</p></div>`,
+
+  datenschutz: `
+    <div class="sec"><h3>Kurz gesagt</h3>
+      <p class="tw">Das Wichtigste in drei Sätzen</p>
+      <p>Solange du kein Konto anlegst, verlässt kein einziges Datum dein Gerät.
+      Dein Fortschritt liegt dann allein im Speicher deines Browsers.
+      Erst wenn du dich für ein Konto entscheidest, werden E-Mail, Passwort und Lernfortschritt
+      auf einem Server gespeichert, damit du auf einem anderen Gerät weiterlernen kannst.</p></div>
+
+    <div class="sec"><h3>Verantwortliche Stelle</h3>
+      <p>${anschrift}</p></div>
+
+    <div class="sec"><h3>Was auf deinem Gerät bleibt</h3>
+      <p>Die App speichert im lokalen Speicher deines Browsers deinen gewählten Namen,
+      deinen Lernfortschritt, gelöste Lektionen, gemerkte Sprichwörter sowie
+      Einstellungen wie Lautstärke und Hintergrundklang.</p>
+      <p>Diese Speicherung ist für den Betrieb der App unbedingt erforderlich,
+      denn ohne sie wäre jeder Fortschritt beim nächsten Öffnen verloren.
+      Sie erfolgt deshalb nach § 25 Absatz 2 Nummer 2 Telekommunikation-Digitale-Dienste-Datenschutz-Gesetz
+      ohne Einwilligung. Diese Daten werden nicht an uns und nicht an Dritte übertragen.
+      Du kannst sie jederzeit löschen, indem du in deinem Browser die Websitedaten entfernst.</p>
+      <div class="tp">Wir setzen keine Cookies, keine Zählpixel, keine Werbung
+      und kein Besucherstatistikwerkzeug ein. Darum fragt diese App dich auch nicht nach einer
+      Einwilligung für solche Dinge.</div></div>
+
+    <div class="sec"><h3>Aufrufen der App, Serverprotokolle</h3>
+      <p>Die App wird über GitHub Pages bereitgestellt, einen Dienst der GitHub, Inc.,
+      88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, USA.
+      Beim Aufruf verarbeitet GitHub technisch notwendige Zugriffsdaten,
+      darunter deine IP-Adresse, Datum und Uhrzeit, die abgerufene Datei sowie Angaben
+      zu Browser und Betriebssystem.</p>
+      <p>Rechtsgrundlage ist Artikel 6 Absatz 1 Buchstabe f Datenschutz-Grundverordnung.
+      Unser berechtigtes Interesse liegt in der sicheren und stabilen Bereitstellung der App.
+      Da die Verarbeitung auch in den Vereinigten Staaten erfolgen kann,
+      stützt sie sich zusätzlich auf den Angemessenheitsbeschluss der Europäischen Kommission
+      zum EU-US Data Privacy Framework sowie auf Standardvertragsklauseln.</p></div>
+
+    <div class="sec"><h3>Konto und Fortschritt auf mehreren Geräten</h3>
+      <p class="tw">Nur wenn du es selbst einrichtest</p>
+      <p>Legst du ein Konto an, nutzen wir dafür Firebase Authentication und Cloud Firestore,
+      Dienste der Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland.
+      Verarbeitet werden dabei deine E-Mail-Adresse, ein Prüfwert deines Passworts,
+      eine Kennnummer deines Kontos, Zeitpunkte der Anmeldungen, deine IP-Adresse
+      sowie dein Lernfortschritt.</p>
+      <p>Dein Passwort selbst wird nicht gespeichert und ist uns nicht zugänglich.
+      Lautstärke und ähnliche Geräteeinstellungen werden bewusst nicht übertragen.</p>
+      <p>Rechtsgrundlage ist Artikel 6 Absatz 1 Buchstabe b Datenschutz-Grundverordnung,
+      denn die Speicherung ist genau die Leistung, um die du mit dem Anlegen des Kontos bittest.
+      Eine Übermittlung in die Vereinigten Staaten ist möglich und stützt sich auf den
+      Angemessenheitsbeschluss zum EU-US Data Privacy Framework sowie auf Standardvertragsklauseln.
+      Mit Google besteht ein Vertrag zur Auftragsverarbeitung.</p>
+      <p>Wir bewahren diese Daten so lange auf, wie dein Konto besteht.
+      Löschst du dein Konto, werden E-Mail-Adresse und Fortschritt entfernt.
+      Du findest die Löschung in der App unter deinem Konto.</p></div>
+
+    <div class="sec"><h3>Vorlesen der türkischen Wörter</h3>
+      <p>Das Vorlesen übernimmt die Sprachausgabe, die in deinem Gerät eingebaut ist.
+      Je nach Hersteller und Einstellung kann dein Gerät dafür eine Stimme aus dem Internet
+      verwenden. Das geschieht außerhalb unseres Einflusses und richtet sich nach den
+      Einstellungen deines Geräts. Wir senden keine Texte an einen Vorlesedienst.</p></div>
+
+    <div class="sec"><h3>Deine Rechte</h3>
+      <p>Du hast das Recht auf Auskunft nach Artikel 15, auf Berichtigung nach Artikel 16,
+      auf Löschung nach Artikel 17, auf Einschränkung der Verarbeitung nach Artikel 18,
+      auf Datenübertragbarkeit nach Artikel 20 und auf Widerspruch nach Artikel 21
+      Datenschutz-Grundverordnung.</p>
+      <p>Wende dich dafür an ${esc(a.mail)}. Außerdem kannst du dich nach Artikel 77
+      bei einer Datenschutz-Aufsichtsbehörde beschweren, etwa bei der Behörde deines
+      Wohnorts oder Arbeitsplatzes.</p></div>
+
+    <div class="sec"><h3>Stand</h3>
+      <p>Diese Erklärung gilt ab dem ${esc(BUILD)}.
+      Ändert sich etwas an der App, passen wir sie an.</p></div>`,
+
+  widerruf: `
+    ${PAYWALL_AN ? "" : `<div class="tp" style="margin:0 0 14px">
+      Zurzeit sind alle Inhalte der App kostenlos. Die folgende Belehrung gilt,
+      sobald ein kostenpflichtiger Zugang angeboten wird.</div>`}
+
+    <div class="sec"><h3>Widerrufsrecht</h3>
+      <p>Du hast das Recht, binnen vierzehn Tagen ohne Angabe von Gründen diesen Vertrag
+      zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des Vertragsabschlusses.</p>
+      <p>Um dein Widerrufsrecht auszuüben, musst du uns mittels einer eindeutigen Erklärung
+      über deinen Entschluss unterrichten, diesen Vertrag zu widerrufen.
+      Eine E-Mail an ${esc(a.mail)} genügt.
+      Zur Wahrung der Frist reicht es aus, dass du die Erklärung vor Ablauf der Frist absendest.</p>
+      <p>Anschrift für den Widerruf:</p>
+      <p>${anschrift}</p></div>
+
+    <div class="sec"><h3>Folgen des Widerrufs</h3>
+      <p>Wenn du diesen Vertrag widerrufst, zahlen wir alle Zahlungen,
+      die wir von dir erhalten haben, unverzüglich und spätestens binnen vierzehn Tagen
+      ab dem Tag zurück, an dem die Mitteilung über deinen Widerruf bei uns eingegangen ist.
+      Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der
+      ursprünglichen Zahlung eingesetzt hast, es sei denn, mit dir wurde etwas anderes vereinbart.
+      Wegen dieser Rückzahlung werden dir keine Gebühren berechnet.</p></div>
+
+    <div class="sec"><h3>Vorzeitiges Erlöschen des Widerrufsrechts</h3>
+      <p class="tw">Das betrifft dich nur, wenn du sofort Zugang möchtest</p>
+      <p>Bei digitalen Inhalten erlischt dein Widerrufsrecht, wenn wir mit der Erfüllung
+      begonnen haben und du zuvor beim Kauf ausdrücklich zugestimmt hast,
+      dass wir sofort beginnen, und dabei bestätigt hast, dass du dadurch dein
+      Widerrufsrecht verlierst. Ohne diese beiden Bestätigungen bleibt dein Widerrufsrecht
+      die vollen vierzehn Tage bestehen.</p></div>
+
+    <div class="sec"><h3>Muster-Widerrufsformular</h3>
+      <p class="tw">Du kannst es verwenden, musst es aber nicht</p>
+      <p>An ${esc(a.name)}, ${esc(a.strasse)}, ${esc(a.ort)}, ${esc(a.mail)}</p>
+      <p>Hiermit widerrufe ich den von mir abgeschlossenen Vertrag über den Zugang zu
+      Typisch Türkisch.</p>
+      <p>Bestellt am: ______ &nbsp; Name: ______ &nbsp; Anschrift: ______
+      &nbsp; Datum und Unterschrift: ______</p></div>`
+  };
+
+  app.innerHTML = topbar() + `
+    <div class="hero"><h1>${esc((RECHT_SEITEN.find(r => r[0] === akt) || [,"Rechtliches"])[1])}</h1></div>
+    <div class="reiter">${RECHT_SEITEN.map(([k,l]) =>
+      `<button class="${k === akt ? "on" : ""}" data-recht="${k}"><span>${esc(l)}</span></button>`).join("")}</div>
+    ${rechtWarnung()}
+    <div class="read" style="padding-top:4px">${texte[akt]}</div>
+    <div class="foot"><button class="cta" id="back">Zurück</button></div>`;
+  document.getElementById("chip").onclick = profileSheet;
+  document.getElementById("back").onclick = home;
+  app.querySelectorAll("[data-recht]").forEach(b => {
+    b.onclick = () => { scrollTo(0,0); rechtScreen(b.dataset.recht); };
+  });
+  scrollTo(0,0);
 }
 
 /* ---------- 3c. PREMIUM-SPERRE ---------- */
@@ -4188,9 +4519,10 @@ function boot(){
   if(ACTIVE && USERS[ACTIVE]) home(); else authScreen("login");
 }
 
-/* Wenn Firebase geladen ist und schon jemand angemeldet war,
-   wird der Fortschritt im Hintergrund geholt. */
-function wolkeStarten(){
+/* War beim letzten Mal ein Konto in Gebrauch, wird der Fortschritt
+   im Hintergrund geholt. Sonst bleibt Firebase ungeladen. */
+async function wolkeStarten(){
+  await wolkeLaden();
   if(!wolkeDa()) return;
   CLOUD.beobachten(async u => {
     if(!u){ KONTO = null; return; }
@@ -4200,8 +4532,10 @@ function wolkeStarten(){
   });
 }
 try{
-  if(window.CLOUD) wolkeStarten();
-  else window.addEventListener("cloud-bereit", wolkeStarten, { once:true });
+  const warAngemeldet = window.CLOUD
+    || (ACTIVE && String(ACTIVE).indexOf("cloud_") === 0)
+    || Object.keys(USERS || {}).some(k => k.indexOf("cloud_") === 0);
+  if(warAngemeldet) wolkeStarten();
 }catch(e){}
 
 
@@ -4679,46 +5013,6 @@ try{
   });
 }catch(e){}
 </script>
-<script type="module">
-/* ---------- WOLKE ----------
-   Firebase wird erst hier geladen. Klappt es nicht, etwa ohne Netz
-   oder wenn gstatic blockiert ist, läuft die App unverändert weiter,
-   nur eben ohne Abgleich. */
-const CFG = {
-  apiKey: "AIzaSyDBt37iR5RVWgKzw_JhAq4R3I94ZSFJG5s",
-  authDomain: "typisch-tuerkisch.firebaseapp.com",
-  projectId: "typisch-tuerkisch",
-  storageBucket: "typisch-tuerkisch.firebasestorage.app",
-  messagingSenderId: "1023810907470",
-  appId: "1:1023810907470:web:7a7b5ce6fd0c91a221821f"
-};
-const V = "12.2.1", B = "https://www.gstatic.com/firebasejs/" + V + "/";
-try{
-  if(window.CLOUD) throw { schonDa:true };
-  const { initializeApp } = await import(B + "firebase-app.js");
-  const A = await import(B + "firebase-auth.js");
-  const F = await import(B + "firebase-firestore.js");
-  const app  = initializeApp(CFG);
-  const auth = A.getAuth(app);
-  const db   = F.getFirestore(app);
-  try{ await A.setPersistence(auth, A.browserLocalPersistence); }catch(e){}
-  window.CLOUD = {
-    da: true,
-    beobachten:   cb => A.onAuthStateChanged(auth, cb),
-    registrieren: (mail, pw) => A.createUserWithEmailAndPassword(auth, mail, pw),
-    anmelden:     (mail, pw) => A.signInWithEmailAndPassword(auth, mail, pw),
-    abmelden:     () => A.signOut(auth),
-    passwortMail: mail => A.sendPasswordResetEmail(auth, mail),
-    laden: async uid => {
-      const d = await F.getDoc(F.doc(db, "nutzer", uid));
-      return d.exists() ? d.data() : null;
-    },
-    speichern: (uid, daten) => F.setDoc(F.doc(db, "nutzer", uid), daten)
-  };
-}catch(e){
-  if(!(e && e.schonDa)) window.CLOUD = { da: false, fehler: String((e && e.message) || e) };
-}
-try{ window.dispatchEvent(new Event("cloud-bereit")); }catch(e){}
-</script>
+
 </body>
 </html>
