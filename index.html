@@ -90,6 +90,8 @@
 
   /* ---------- top bar ---------- */
   .topbar{display:flex;align-items:center;gap:14px;padding:14px 18px 10px}
+  .wortmarke{font-weight:800;font-size:15.5px;color:var(--muted);letter-spacing:-.01em}
+  .wortmarke b{font-weight:900;color:var(--red)}
   .stat{display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px}
   .stat .ic{font-size:18px;line-height:1}
   .stat.fire{color:var(--gold)}
@@ -2940,11 +2942,9 @@ function sfx(kind){
 
 function topbar(){
   return `<div class="topbar">
-    <button class="chip" id="chip"><span class="ava sm">${esc(initial())}</span></button>
-    <div class="stat fire">${svgIcon("fire")}${S.streak}</div>
-    <div class="stat gem">${svgIcon("tea")}${S.xp}</div>
+    <span class="wortmarke">Typisch <b>Türkisch</b></span>
     <div class="spacer"></div>
-    <div class="stat word">${svgIcon("book")}${woerter()}</div>
+    <button class="chip" id="chip"><span class="ava sm">${esc(initial())}</span></button>
   </div>`;
 }
 
@@ -3106,8 +3106,8 @@ const TOUR = [
     x:"Oben fängst du an, nach unten geht es weiter. Jede Einheit hat ihre Lektionen und am Ende einen Test. Erst wenn du den bestehst, öffnet sich die nächste Einheit." },
   { ic:"grid", c:"#1d7fc0", t:"Vier Bereiche oben",
     x:"Lernen ist der Kurs. Daneben liegen die Kulturecke zum Lesen, Verstehen für die kniffligen Situationen und die Hörecke zum Zuhören. Du kannst jederzeit wechseln." },
-  { ic:"tea", c:"#2f7fd4", t:"Çay und Wörter",
-    x:"Für richtige Antworten sammelst du Çay. Oben siehst du außerdem, wie viele verschiedene Wörter dir schon begegnet sind. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
+  { ic:"tea", c:"#2f7fd4", t:"Çay sammeln",
+    x:"Für richtige Antworten sammelst du Çay. Wie viel es geworden ist, siehst du nach jeder Lektion und jederzeit unter Fortschritt ansehen. Fehler kosten dich nichts, von ihnen lernt man am meisten." },
   { ic:"book", c:"#2f9e5c", t:"Wörter kommen wieder",
     x:"Jedes Wort merkt sich, wie gut es bei dir sitzt. Was wackelt, kommt bald wieder, was sitzt, erst in Wochen. Gemeistert ist ein Wort erst, wenn du es an mehreren Tagen erinnert hast, nicht nach einem Glückstreffer." },
   { ic:"target", c:"#2f9e5c", t:"Übung des Tages",
@@ -5491,6 +5491,10 @@ function fortschritt(){
       ${naechste ? `<div class="fsnext">Noch ${naechste.ab - w} Wörter bis <b>${esc(naechste.t)}</b></div>` : ""}
     </div>
 
+    <div class="wst">
+      <div><b style="color:var(--nazar)">${S.xp}</b><span>Çay gesammelt</span></div>
+      <div><b style="color:var(--gold)">${S.streak}</b><span>${S.streak === 1 ? "Tag am Stück" : "Tage am Stück"}</span></div>
+    </div>
     <div class="wst">
       <div><b style="color:var(--green-dark)">${z.meister}</b><span>Gemeistert</span></div>
       <div><b style="color:var(--gold)">${z.uebung}</b><span>In Übung</span></div>
