@@ -3332,43 +3332,53 @@ function kontoFehler(err){
    so online geht. */
 const ANBIETER = {
   name:    "Gözde Özler",
-  strasse: "BITTE_AUSFUELLEN",   /* Strasse und Hausnummer, fehlt noch */
-  ort:     "BITTE_AUSFUELLEN",   /* Postleitzahl und Bergama, fehlt noch */
+  /* Solange die App nichts kostet, steht hier keine Anschrift.
+     Sobald etwas verkauft wird, muss eine Geschäftsadresse hier hinein,
+     und zwar nicht die Wohnanschrift. */
+  strasse: "",
+  ort:     "",
   land:    "Bergama, İzmir, Türkei",
   mail:    "gozdeeozler@gmail.com",
   telefon: "",                   /* freiwillig, leer lassen ist erlaubt */
   ustid:   ""                    /* nur falls vorhanden */
 };
-const ANBIETER_FERTIG = () => !JSON.stringify(ANBIETER).includes("BITTE_AUSFUELLEN");
+const ANBIETER_FERTIG = () => !!(ANBIETER.strasse && ANBIETER.ort);
 
-const RECHT_SEITEN = [
-  ["impressum",  "Impressum"],
-  ["datenschutz","Datenschutz"],
-  ["widerruf",   "Widerruf"]
-];
+/* Ein Widerrufsrecht ohne Kauf verwirrt nur. Die Seite erscheint,
+   sobald PAYWALL_AN auf true steht. */
+const RECHT_SEITEN = PAYWALL_AN
+  ? [["impressum","Impressum"], ["datenschutz","Datenschutz"], ["widerruf","Widerruf"]]
+  : [["impressum","Impressum"], ["datenschutz","Datenschutz"]];
 
+/* Früher stand hier ein roter Kasten, der an die Betreiberin gerichtet war.
+   Den haben aber alle Besucher gesehen. Der Hinweis geht jetzt nur noch in
+   die Entwicklerkonsole, die Seiten selbst bleiben sauber. */
 function rechtWarnung(){
-  return ANBIETER_FERTIG() ? "" : `<div class="warn" style="background:#ffe8e8;color:#a01212">
-    Hinweis für die Betreiberin: In dieser Fassung fehlen noch Name, Adresse und E-Mail.
-    Ohne diese Angaben darf die App nicht öffentlich angeboten werden.</div>`;
+  if(!ANBIETER_FERTIG()){
+    try{ console.info("Typisch Türkisch: Es fehlt noch eine Geschäftsadresse im Block ANBIETER. "
+      + "Sie wird gebraucht, sobald etwas verkauft wird."); }catch(e){}
+  }
+  return "";
 }
 
 function rechtScreen(seite){
   const akt = seite || "impressum";
   const a = ANBIETER;
-  const anschrift = `${esc(a.name)}<br>${esc(a.strasse)}<br>${esc(a.ort)}<br>${esc(a.land)}`
-    + (a.telefon ? `<br>Telefon ${esc(a.telefon)}` : "")
-    + `<br>E-Mail ${esc(a.mail)}`
-    + (a.ustid ? `<br>Umsatzsteuer-Identifikationsnummer ${esc(a.ustid)}` : "");
+  const zeilen = [a.name, a.strasse, a.ort, a.land].filter(Boolean).map(esc);
+  if(a.telefon) zeilen.push("Telefon " + esc(a.telefon));
+  zeilen.push("E-Mail " + esc(a.mail));
+  if(a.ustid) zeilen.push("Umsatzsteuer-Identifikationsnummer " + esc(a.ustid));
+  const anschrift = zeilen.join("<br>");
 
   const texte = {
 
   impressum: `
-    <div class="sec"><h3>Anbieter</h3>
-      <p>Angaben nach § 5 Digitale-Dienste-Gesetz</p>
-      <p>${anschrift}</p></div>
+    <div class="sec"><h3>Anbieterin</h3>
+      <p>${anschrift}</p>
+      ${ANBIETER_FERTIG() ? "" : `<p>Diese App wird zurzeit kostenlos und ohne jedes
+      Angebot zum Kauf bereitgestellt. Du erreichst uns per E-Mail, wir antworten.</p>`}</div>
     <div class="sec"><h3>Verantwortlich für den Inhalt</h3>
-      <p>${esc(a.name)}, Anschrift wie oben.</p></div>
+      <p>${esc(a.name)}</p></div>
     <div class="sec"><h3>Streitbeilegung</h3>
       <p>Wir nehmen an einem Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle
       nicht teil und sind dazu auch nicht verpflichtet.</p></div>
@@ -3385,7 +3395,8 @@ function rechtScreen(seite){
       auf einem Server gespeichert, damit du auf einem anderen Gerät weiterlernen kannst.</p></div>
 
     <div class="sec"><h3>Verantwortliche Stelle</h3>
-      <p>${anschrift}</p></div>
+      <p>${anschrift}</p>
+      <p>Für alle Fragen zu deinen Daten schreib an ${esc(a.mail)}.</p></div>
 
     <div class="sec"><h3>Was auf deinem Gerät bleibt</h3>
       <p>Die App speichert im lokalen Speicher deines Browsers deinen gewählten Namen,
