@@ -175,6 +175,12 @@ window.addEventListener("appinstalled", function(){
     text-align:center;font-size:12px;color:var(--muted);font-weight:700;
     margin:11px 0 2px;
   }
+  /* Anleitung fürs iPhone: die Schritte stehen untereinander,
+     der Text darf dabei ruhig zwei Zeilen brauchen. */
+  .sheet .row .ava.sm{flex:none}
+  .sheet .row>span:last-child{line-height:1.45}
+  .sheet .row.ios-warn{background:var(--red-soft)}
+  .sheet .row .ic-svg.mini{vertical-align:-4px;color:var(--nazar)}
 
 
   .orb.gruen{background:var(--green-soft);color:var(--green-dark);
@@ -2670,6 +2676,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    Gerät gleich aussehen und die Farbe der Einheit annehmen. */
 const ICON = {
   phone:'<rect x="6.4" y="2.6" width="11.2" height="18.8" rx="2.6"/><path d="M10.6 5.3h2.8"/><path d="M12 18.1h.01"/>',
+  teilen:'<path d="M12 15.2V3.4"/><path d="M8.5 6.9 12 3.4l3.5 3.5"/><path d="M7.4 10.6H5.9a1.7 1.7 0 0 0-1.7 1.7v6.6a1.7 1.7 0 0 0 1.7 1.7h12.2a1.7 1.7 0 0 0 1.7-1.7v-6.6a1.7 1.7 0 0 0-1.7-1.7h-1.5"/>',
   arrow:'<path d="M4.6 12h14.8M13.4 6.4l6 5.6-6 5.6"/>',
   note:'<path d="M9.4 17.6V5.2l9.4-1.8v12.4"/><ellipse cx="6.8" cy="17.8" rx="2.6" ry="2.2"/><ellipse cx="16.2" cy="15.8" rx="2.6" ry="2.2"/>',
   target:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
@@ -5948,7 +5955,7 @@ function finish(){
     </div>
   </div>
   <div class="foot">
-    ${instFin ? `<button class="cta inst-cta" id="instGo">App installieren</button>
+    ${instFin ? `<button class="cta inst-cta" id="instGo">${instMoeglich() ? "App installieren" : "App aufs Handy legen"}</button>
     <p class="inst-hint">Dann findest du sie morgen wieder</p>` : ""}
     <button class="cta${instFin ? " ghost" : ""}" id="cont">${probeLocked(L.idx+1) ? "Weiter geht es mit einem Profil" : "Weiter"}</button>
     ${(L.falsch && L.falsch.length) ? `<button class="cta ghost" id="fehler">Die ${L.falsch.length} Fehler gleich noch einmal</button>` : ""}
@@ -6011,14 +6018,41 @@ function examResult(){
    ein eigener Knopf. Auf dem iPhone kommt die Meldung nie, dort bleibt
    alles aus und es wird nichts angezeigt. */
 
+/* Liegt die App schon auf dem Startbildschirm? Dann ist hier nichts zu tun. */
+function schonAbgelegt(){
+  try{
+    if(window.matchMedia("(display-mode: standalone)").matches) return true;
+    if(window.navigator.standalone) return true;
+  }catch(e){}
+  return false;
+}
+
 function instMoeglich(){
   if(!window.__ttInst) return false;
-  /* Läuft schon vom Startbildschirm, dann gibt es nichts zu tun. */
+  return !schonAbgelegt();
+}
+
+/* iPhone und iPad. Dort gibt es keinen Knopf, den man drücken könnte:
+   Apple lässt das Ablegen nur über das Teilen-Menü zu. Statt eines
+   Knopfes wird deshalb erklärt, wo man tippen muss. */
+function istApple(){
   try{
-    if(window.matchMedia("(display-mode: standalone)").matches) return false;
-    if(window.navigator.standalone) return false;
-  }catch(e){}
-  return true;
+    const ua = navigator.userAgent || "";
+    if(/iPad|iPhone|iPod/.test(ua)) return true;
+    /* iPad meldet sich seit einiger Zeit als Mac mit Touch. */
+    return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  }catch(e){ return false; }
+}
+
+/* Auf dem iPhone kann nur Safari etwas auf den Startbildschirm legen,
+   auch wenn ein anderer Browser eingestellt ist. */
+function istSafari(){
+  const ua = navigator.userAgent || "";
+  return !/CriOS|FxiOS|EdgiOS|OPiOS|OPT\//.test(ua);
+}
+
+function appleMoeglich(){
+  return istApple() && !schonAbgelegt();
 }
 
 function instZaehler(){
@@ -6027,23 +6061,36 @@ function instZaehler(){
 }
 
 function instStreifen(){
-  if(!instMoeglich()) return "";
   /* Zweimal weggeklickt heißt: nicht mehr fragen. */
   if(instZaehler() >= 2) return "";
-  return `<div class="inst" id="instBar">
-    <div class="inst-ic">${svgIcon("phone")}</div>
-    <div class="inst-t">
-      <b>App aufs Handy</b>
-      <span>Ohne Browser öffnen</span>
-    </div>
-    <button class="inst-go" id="instGo">Installieren</button>
-    <button class="inst-x" id="instX" aria-label="Jetzt nicht">&times;</button>
-  </div>`;
+  if(instMoeglich()){
+    return `<div class="inst" id="instBar">
+      <div class="inst-ic">${svgIcon("phone")}</div>
+      <div class="inst-t">
+        <b>App aufs Handy</b>
+        <span>Ohne Browser öffnen</span>
+      </div>
+      <button class="inst-go" id="instGo">Installieren</button>
+      <button class="inst-x" id="instX" aria-label="Jetzt nicht">&times;</button>
+    </div>`;
+  }
+  if(appleMoeglich()){
+    return `<div class="inst" id="instBar">
+      <div class="inst-ic">${svgIcon("phone")}</div>
+      <div class="inst-t">
+        <b>App aufs Handy</b>
+        <span>Geht in drei Schritten</span>
+      </div>
+      <button class="inst-go" id="instGo">So geht es</button>
+      <button class="inst-x" id="instX" aria-label="Jetzt nicht">&times;</button>
+    </div>`;
+  }
+  return "";
 }
 
 /* Nach der ersten Lektion einmal fragen, da ist die Laune am besten. */
 function instNachLektion(){
-  if(!instMoeglich()) return false;
+  if(!instMoeglich() && !appleMoeglich()) return false;
   try{
     if(localStorage.getItem("tt_inst_nach") === "1") return false;
     localStorage.setItem("tt_inst_nach", "1");
@@ -6052,6 +6099,7 @@ function instNachLektion(){
 }
 
 async function instStarten(){
+  if(appleMoeglich() && !instMoeglich()) return appleBlatt();
   const e = window.__ttInst;
   if(!e) return;
   window.__ttInst = null;
@@ -6061,6 +6109,39 @@ async function instStarten(){
   }catch(err){}
   const b = document.getElementById("instBar");
   if(b) b.remove();
+}
+
+/* Die Anleitung fürs iPhone. Apple erlaubt keinen eigenen Knopf,
+   also wird gezeigt, wo im Teilen-Menü zu tippen ist. */
+function appleBlatt(){
+  const el = document.createElement("div");
+  el.className = "sheet";
+  const safari = istSafari();
+  el.innerHTML = `<div class="inner">
+    <h3>Typisch Türkisch aufs Handy</h3>
+    <p class="who">Danach liegt die App als Symbol auf deinem Startbildschirm
+    und öffnet sich mit einem Tippen, ohne Browser.</p>
+    ${safari ? "" : `<div class="row ios-warn">
+      <span class="ava sm" style="background:var(--red-soft);color:var(--red)">!</span>
+      <span>Das geht nur in Safari. Öffne typisch-tuerkisch.github.io dort
+      und komm dann wieder hierher.</span>
+    </div>`}
+    <div class="row"><span class="ava sm">1</span>
+      <span>Unten in der Leiste auf das Teilen-Symbol tippen
+      ${svgIcon("teilen","mini")}</span></div>
+    <div class="row"><span class="ava sm">2</span>
+      <span>In der Liste nach unten wischen und
+      <b>Zum Home-Bildschirm</b> wählen</span></div>
+    <div class="row"><span class="ava sm">3</span>
+      <span>Oben rechts auf <b>Hinzufügen</b> tippen</span></div>
+    <p class="note">Es wird nichts heruntergeladen und nichts installiert.
+    Es entsteht nur ein Symbol, so wie ein Lesezeichen.</p>
+    <button class="cta ghost" id="close">Schließen</button>
+  </div>`;
+  document.body.appendChild(el);
+  const kill = () => el.remove();
+  el.onclick = e => { if(e.target === el) kill(); };
+  el.querySelector("#close").onclick = kill;
 }
 
 function instBinden(){
