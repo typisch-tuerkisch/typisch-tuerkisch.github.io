@@ -2332,6 +2332,7 @@ const PAYWALL_AN = false;   /* auf true stellen, wenn bezahlt werden kann */
 /* Probe: Ohne Profil darf jemand hineinschauen, aber nichts wird gespeichert. */
 const PROBE_SCHL  = "__probe";
 const PROBE_EINHEIT = 0;   /* diese Einheit ist in der Probe ganz offen */
+const PROBE_FREI    = 8;   /* so viele davon stehen sofort offen, ohne Reihenfolge */
 const KAUF_LINK = "";
 const INSTA = "https://www.instagram.com/typisch__turkisch/";
 const PREIS_EINMAL = "19,90 €";
@@ -2664,7 +2665,12 @@ const bonusDone = ui => S.bonusDone.indexOf(bonusIx(ui)) >= 0;
 const examOpen  = ui => bonusOf(ui) ? (bonusOpen(ui) && bonusDone(ui)) : bonusOpen(ui);
 function isOpen(i){
   const ui = FLAT[i].ui, arr = lessonsOf(ui), pos = arr.indexOf(i);
-  return unitOpen(ui) && (pos === 0 || isDone(arr[pos-1]));
+  if(!unitOpen(ui)) return false;
+  /* Ohne Profil darf man sich in den ersten Lektionen frei umsehen,
+     statt sie der Reihe nach freizuschalten. Wer ein Profil hat,
+     geht weiter Schritt für Schritt vor. */
+  if(istProbe() && ui === PROBE_EINHEIT && pos < PROBE_FREI) return true;
+  return pos === 0 || isDone(arr[pos-1]);
 }
 
 /* ---------- 3. HILFSMITTEL ---------- */
