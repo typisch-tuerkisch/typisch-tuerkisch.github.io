@@ -2325,7 +2325,7 @@ const DAILY_GOAL = 40;
 const PAYWALL_AN = false;   /* auf true stellen, wenn bezahlt werden kann */
 /* Probe: Ohne Profil darf jemand hineinschauen, aber nichts wird gespeichert. */
 const PROBE_SCHL  = "__probe";
-const PROBE_LEKT  = 1;     /* so viele Lektionen sind in der Probe offen */
+const PROBE_EINHEIT = 0;   /* diese Einheit ist in der Probe ganz offen */
 const KAUF_LINK = "";
 const INSTA = "https://www.instagram.com/typisch__turkisch/";
 const PREIS_EINMAL = "19,90 €";
@@ -3629,7 +3629,11 @@ function rechtScreen(seite){
 /* ---------- 3c. PREMIUM-SPERRE ---------- */
 const proLocked  = i => PAYWALL_AN && UNITS[FLAT[i].ui].pro && !S.pro;
 /* In der Probe ist nur der Anfang offen. Weiter geht es mit einem Profil. */
-const probeLocked = i => istProbe() && i >= PROBE_LEKT;
+/* Ohne Profil ist die erste Einheit ganz offen, mit Übung des Tages,
+   Bonus und Abschlusstest. Gerechnet wird ganz normal mit, damit man
+   sieht, wie die App sich anfühlt. Gespeichert wird nichts: beim
+   nächsten Öffnen ist der Fortschritt weg. */
+const probeLocked = i => istProbe() && (!FLAT[i] || FLAT[i].ui > PROBE_EINHEIT);
 
 /* Wer sich frueher angemeldet hat, hat noch keinen Namen hinterlegt.
    Statt die E-Mail anzuzeigen, wird einmal gefragt. */
