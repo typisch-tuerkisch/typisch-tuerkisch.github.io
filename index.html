@@ -683,6 +683,38 @@ window.addEventListener("appinstalled", function(){
   .field input:focus{outline:none;border-color:var(--nazar)}
   .err{color:var(--red);font-size:13.5px;font-weight:700;margin:2px 0 10px;min-height:18px}
   .auth .cta{margin-top:6px}
+
+  /* Erster Bildschirm für alle, die noch kein Profil auf dem Gerät haben.
+     Statt eines Anmeldeformulars steht hier ein Wort, das neugierig macht. */
+  .wauth{justify-content:center}
+  .wauth .logo.big{width:104px;height:104px;margin:0 auto 18px}
+  .wkarte{
+    background:var(--surface);border:1px solid var(--line);border-radius:20px;
+    padding:22px 18px;text-align:center;margin-bottom:22px;
+  }
+  .wkopf{
+    margin:0 0 9px;font-size:11.5px;font-weight:900;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .wwort{margin:0 0 6px;font-size:34px;font-weight:900;letter-spacing:-.5px}
+  .wrang{margin:0 0 18px;font-size:13.5px;font-weight:800;color:var(--gold)}
+  .wfrage{
+    width:100%;background:none;border:2px dashed var(--line);border-radius:14px;
+    padding:14px;color:var(--nazar);font-size:14.5px;font-weight:800;
+  }
+  .wloes{
+    background:#e8f2fb;border-radius:14px;padding:14px;text-align:left;
+    font-size:14px;line-height:1.5;color:var(--nazar-dark);font-weight:700;
+  }
+  .gruss{justify-content:center;text-align:center}
+  .gruss .lead{text-align:center;margin:8px 0 0}
+  /* Einmalige Begrüßung nach dem Anlegen eines Profils. */
+  .wkbox{
+    margin:0 18px 14px;background:var(--red-soft);border:1px solid #f7d3d2;
+    border-radius:var(--r);padding:13px 15px;
+  }
+  .wkbox b{display:block;font-size:15px;font-weight:900;margin-bottom:3px}
+  .wkbox span{display:block;font-size:13px;color:var(--muted);font-weight:700;line-height:1.45}
   .switchline{text-align:center;margin-top:18px;font-size:14px;color:var(--muted);font-weight:700}
   /* Die Tippfläche war nur 27 Pixel hoch und damit zu klein für einen Daumen. */
   .switchline button{background:none;color:var(--nazar);font-size:14px;font-weight:800;
@@ -3044,6 +3076,68 @@ function topbar(){
    Benutzernamen. Wer nur schauen will, kommt über die Probe hinein.
    Alte Profile ohne Konto bleiben erreichbar, damit niemand
    seinen Fortschritt verliert. */
+/* Gibt es auf diesem Gerät überhaupt ein Profil? Wenn nicht, ist
+   jemand zum ersten Mal da und bekommt kein Anmeldeformular zu sehen. */
+function keinProfil(){
+  try{
+    return !Object.keys(USERS).some(k => k !== "__gast" && k !== PROBE_SCHL);
+  }catch(e){ return true; }
+}
+
+/* Der erste Bildschirm für neue Besucher. Ein Wort, dessen Bedeutung
+   erst auf Antippen erscheint. Wer schon ein Profil hat, sieht ihn nie. */
+function willkommenScreen(aufgedeckt){
+  app.innerHTML = `<div class="auth wauth">
+    <img class="logo big" src="img/logo-256.png" alt="Typisch Türkisch">
+    <div class="wkarte">
+      <p class="wkopf">Wettbewerb 2007 🌍</p>
+      <p class="wwort">yakamoz</p>
+      <p class="wrang">Das schönste Wort der Welt, 1. Platz</p>
+      ${aufgedeckt
+        ? `<div class="wloes">Das Leuchten im Meer, das man nachts sieht, wenn
+             sich das Wasser bewegt. 2500 Wörter aus 60 Ländern waren dabei,
+             gewonnen hat dieses eine.</div>`
+        : `<button class="wfrage" id="wAuf">Was heißt es?</button>`}
+    </div>
+    <button class="cta" id="wLos">Zeig mir, was mich erwartet</button>
+    <div class="switchline" style="margin-top:16px">Schon dabei? <button id="wAn">Anmelden</button></div>
+    <div class="switchline" style="margin-top:16px"><button id="wRecht">Impressum und Datenschutz</button></div>
+  </div>`;
+  const g = id => document.getElementById(id);
+  if(g("wAuf")) g("wAuf").onclick = () => willkommenScreen(true);
+  g("wLos").onclick = grussScreen;
+  g("wAn").onclick = () => authScreen("login");
+  g("wRecht").onclick = () => rechtScreen("impressum");
+}
+
+/* Kurzer Gruß, dann geht es von allein weiter. Wer nicht warten will,
+   tippt einmal und ist sofort drin. */
+function grussScreen(){
+  ACTIVE = PROBE_SCHL; S = fresh(); S.tourSeen = true;
+  try{ localStorage.removeItem(AKEY); }catch(e){}
+  app.innerHTML = `<div class="auth gruss" id="grussBox">
+    <img class="logo big" src="img/logo-256.png" alt="">
+    <h1 class="brand" style="text-align:center">Viel Spaß beim Lernen</h1>
+    <p class="lead">Die erste Einheit steht offen, ganz ohne Anmeldung.</p>
+  </div>`;
+  let durch = false;
+  const weiter = () => { if(durch) return; durch = true; enterApp(); };
+  const t = setTimeout(weiter, 1900);
+  const box = document.getElementById("grussBox");
+  if(box) box.onclick = () => { clearTimeout(t); weiter(); };
+}
+
+/* Einmalige Begrüßung, wenn jemand gerade ein Profil angelegt hat. */
+function willkommenKarte(){
+  if(istProbe() || S.wkGesehen || S.done.length > 0) return "";
+  S.wkGesehen = true;
+  save();
+  return `<div class="wkbox">
+    <b>Hoş geldin, ${esc(displayName())}</b>
+    <span>Mal sehen, wie weit du heute kommst. 40 Çay sind ungefähr vier Lektionen.</span>
+  </div>`;
+}
+
 function authScreen(mode, hinweis){
   if(mode === "new") return kontoScreen("neu");
   const alte = Object.keys(USERS).filter(k => k !== "__gast" && k !== PROBE_SCHL
@@ -3857,6 +3951,7 @@ function home(){
         ? "Türkisch und türkisches Leben. Wie wirklich gesprochen wird, was man sagt und was man glaubt."
         : (S.streak > 0 ? `Du bist seit ${S.streak} ${S.streak===1?"Tag":"Tagen"} dabei, weiter geht es.` : "Such dir eine Lektion aus und fang an.")}</p>
     </div>
+    ${willkommenKarte()}
     ${instStreifen()}
     <div class="daily">
       <div class="daily-row"><b>Tagesziel</b><span>${S.dayXp>=DAILY_GOAL ? "geschafft" : S.dayXp+" / "+DAILY_GOAL+" Çay"}</span></div>
@@ -5546,7 +5641,9 @@ function boot(){
     if(ACTIVE && USERS[ACTIVE]) USERS[ACTIVE].data = S;
     save();
   }
-  if(ACTIVE && USERS[ACTIVE]) home(); else authScreen("login");
+  if(ACTIVE && USERS[ACTIVE]) home();
+  else if(keinProfil()) willkommenScreen(false);
+  else authScreen("login");
 }
 
 /* War beim letzten Mal ein Konto in Gebrauch, wird der Fortschritt
