@@ -24,6 +24,24 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Typisch Türkisch">
 <meta name="theme-color" content="#fc4847">
+<script>
+/* Android und der Rechner melden über beforeinstallprompt, dass die App
+   auf den Startbildschirm gelegt werden kann. Die Meldung kommt oft schon,
+   bevor die App fertig aufgebaut ist, deshalb wird hier ganz oben zugehört
+   und sie aufgehoben. Ausgelöst wird sie später am eigenen Knopf.
+   iPhones kennen das nicht, dort bleibt der Knopf einfach aus. */
+window.__ttInst = null;
+window.addEventListener("beforeinstallprompt", function(e){
+  e.preventDefault();
+  window.__ttInst = e;
+  if(typeof window.__ttInstBereit === "function") window.__ttInstBereit();
+});
+window.addEventListener("appinstalled", function(){
+  window.__ttInst = null;
+  var b = document.getElementById("instBar");
+  if(b) b.remove();
+});
+</script>
 <style>
 /* Nunito liegt im Ordner fonts. Es wird nichts von Google geladen,
    damit keine Besucherdaten an Dritte gehen.
@@ -128,6 +146,35 @@
   .daily-row span{font-size:13px;color:var(--muted);font-weight:700}
   .bar{height:9px;border-radius:99px;background:var(--surface-2);overflow:hidden}
   .bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),#f3d383);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+  /* Streifen, der die App auf den Startbildschirm legt.
+     Er erscheint nur, wenn der Browser das auch anbietet. */
+  .inst{
+    margin:0 18px 14px;background:var(--bg);border:2px solid var(--nazar);
+    border-radius:var(--r);padding:11px 12px;display:flex;align-items:center;gap:11px;
+  }
+  .inst-ic{
+    width:38px;height:38px;flex:none;border-radius:11px;background:#e8f2fb;
+    color:var(--nazar);display:flex;align-items:center;justify-content:center;
+  }
+  .inst-t{flex:1;min-width:0}
+  .inst-t b{display:block;font-size:14px;font-weight:800;line-height:1.25}
+  .inst-t span{display:block;font-size:12px;color:var(--muted);font-weight:700;line-height:1.3}
+  .inst-go{
+    flex:none;background:var(--nazar);color:#fff;font-size:13px;font-weight:800;
+    padding:9px 13px;border-radius:11px;box-shadow:0 3px 0 var(--nazar-dark);
+  }
+  .inst-go:active{transform:translateY(2px);box-shadow:0 1px 0 var(--nazar-dark)}
+  .inst-x{
+    flex:none;background:none;color:#a7aab4;font-size:20px;line-height:1;
+    padding:4px 2px 6px;font-weight:700;
+  }
+  .foot .cta.inst-cta{background:var(--nazar);box-shadow:0 4px 0 var(--nazar-dark)}
+  .foot .cta.inst-cta:active{box-shadow:0 2px 0 var(--nazar-dark)}
+  .inst-hint{
+    text-align:center;font-size:12px;color:var(--muted);font-weight:700;
+    margin:11px 0 2px;
+  }
 
 
   .orb.gruen{background:var(--green-soft);color:var(--green-dark);
@@ -2622,6 +2669,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    Von Hand gezeichnet statt Emoji, damit sie auf jedem
    Gerät gleich aussehen und die Farbe der Einheit annehmen. */
 const ICON = {
+  phone:'<rect x="6.4" y="2.6" width="11.2" height="18.8" rx="2.6"/><path d="M10.6 5.3h2.8"/><path d="M12 18.1h.01"/>',
   arrow:'<path d="M4.6 12h14.8M13.4 6.4l6 5.6-6 5.6"/>',
   note:'<path d="M9.4 17.6V5.2l9.4-1.8v12.4"/><ellipse cx="6.8" cy="17.8" rx="2.6" ry="2.2"/><ellipse cx="16.2" cy="15.8" rx="2.6" ry="2.2"/>',
   target:'<circle cx="12" cy="12" r="8.6"/><circle cx="12" cy="12" r="4.8"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/>',
@@ -3768,6 +3816,7 @@ function home(){
         ? "Türkisch und türkisches Leben. Wie wirklich gesprochen wird, was man sagt und was man glaubt."
         : (S.streak > 0 ? `Du bist seit ${S.streak} ${S.streak===1?"Tag":"Tagen"} dabei, weiter geht es.` : "Such dir eine Lektion aus und fang an.")}</p>
     </div>
+    ${instStreifen()}
     <div class="daily">
       <div class="daily-row"><b>Tagesziel</b><span>${S.dayXp>=DAILY_GOAL ? "geschafft" : S.dayXp+" / "+DAILY_GOAL+" Çay"}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
@@ -3802,6 +3851,7 @@ function home(){
 
   document.getElementById("chip").onclick = profileSheet;
   wireReiter();
+  instBinden();
   app.querySelectorAll("[data-u]").forEach(b=>{ b.onclick = () => toggleUnit(+b.dataset.u); });
   app.querySelectorAll("[data-les]").forEach(b=>{ b.onclick = () => startLesson(+b.dataset.les); });
   app.querySelectorAll("[data-bonus]").forEach(b=>{ b.onclick = () => bonusScreen(+b.dataset.bonus, 0); });
@@ -5881,6 +5931,7 @@ function finish(){
   const perfect = L.wrong===0;
   const total = L.right + L.wrong;
   const acc = total ? Math.round(L.right/total*100) : 100;
+  const instFin = instNachLektion();
 
   app.innerHTML = `<div class="result jubel">
     ${mascot("happy")}
@@ -5893,11 +5944,14 @@ function finish(){
     </div>
   </div>
   <div class="foot">
-    <button class="cta" id="cont">${probeLocked(L.idx+1) ? "Weiter geht es mit einem Profil" : "Weiter"}</button>
+    ${instFin ? `<button class="cta inst-cta" id="instGo">App installieren</button>
+    <p class="inst-hint">Dann findest du sie morgen wieder</p>` : ""}
+    <button class="cta${instFin ? " ghost" : ""}" id="cont">${probeLocked(L.idx+1) ? "Weiter geht es mit einem Profil" : "Weiter"}</button>
     ${(L.falsch && L.falsch.length) ? `<button class="cta ghost" id="fehler">Die ${L.falsch.length} Fehler gleich noch einmal</button>` : ""}
     ${(FLAT[L.idx+1] && !probeLocked(L.idx+1)) ? `<button class="cta ghost" id="nextles">Direkt zur nächsten Lektion</button>` : ""}
   </div>`;
   const fl = (L.falsch || []).slice(), ni = L.idx + 1;
+  instBinden();
   document.getElementById("cont").onclick = probeLocked(ni) ? probeEnde : home;
   const fb2 = document.getElementById("fehler");
   if(fb2) fb2.onclick = () => startFehler(fl, "");
@@ -5946,6 +6000,95 @@ function examResult(){
   if(ag) ag.onclick = () => startExam(ui);
   if(ok) konfetti(true);
 }
+
+/* ---------- App auf den Startbildschirm ----------
+   Der Browser meldet ganz oben in der Datei, dass er die App ablegen
+   kann, und die Meldung liegt dann in window.__ttInst. Hier wird daraus
+   ein eigener Knopf. Auf dem iPhone kommt die Meldung nie, dort bleibt
+   alles aus und es wird nichts angezeigt. */
+
+function instMoeglich(){
+  if(!window.__ttInst) return false;
+  /* Läuft schon vom Startbildschirm, dann gibt es nichts zu tun. */
+  try{
+    if(window.matchMedia("(display-mode: standalone)").matches) return false;
+    if(window.navigator.standalone) return false;
+  }catch(e){}
+  return true;
+}
+
+function instZaehler(){
+  try{ return parseInt(localStorage.getItem("tt_inst_zu") || "0", 10) || 0; }
+  catch(e){ return 9; }
+}
+
+function instStreifen(){
+  if(!instMoeglich()) return "";
+  /* Zweimal weggeklickt heißt: nicht mehr fragen. */
+  if(instZaehler() >= 2) return "";
+  return `<div class="inst" id="instBar">
+    <div class="inst-ic">${svgIcon("phone")}</div>
+    <div class="inst-t">
+      <b>App aufs Handy</b>
+      <span>Ohne Browser öffnen</span>
+    </div>
+    <button class="inst-go" id="instGo">Installieren</button>
+    <button class="inst-x" id="instX" aria-label="Jetzt nicht">&times;</button>
+  </div>`;
+}
+
+/* Nach der ersten Lektion einmal fragen, da ist die Laune am besten. */
+function instNachLektion(){
+  if(!instMoeglich()) return false;
+  try{
+    if(localStorage.getItem("tt_inst_nach") === "1") return false;
+    localStorage.setItem("tt_inst_nach", "1");
+  }catch(e){ return false; }
+  return true;
+}
+
+async function instStarten(){
+  const e = window.__ttInst;
+  if(!e) return;
+  window.__ttInst = null;
+  try{
+    e.prompt();
+    await e.userChoice;
+  }catch(err){}
+  const b = document.getElementById("instBar");
+  if(b) b.remove();
+}
+
+function instBinden(){
+  const g = document.getElementById("instGo");
+  if(g) g.onclick = instStarten;
+  const x = document.getElementById("instX");
+  if(x) x.onclick = () => {
+    try{ localStorage.setItem("tt_inst_zu", String(instZaehler() + 1)); }catch(e){}
+    const b = document.getElementById("instBar");
+    if(b) b.remove();
+  };
+}
+
+/* Die Meldung kann auch erst kommen, wenn die Startseite schon steht.
+   Dann wird sie einmal neu aufgebaut, damit der Streifen erscheint. */
+window.__ttInstBereit = function(){
+  try{
+    if(document.getElementById("instBar")) return;
+    if(!document.querySelector(".hero")) return;
+    if(!document.getElementById("fsBtn")) return;
+    home();
+  }catch(e){}
+};
+
+/* Ohne diese Datei darf der Browser das Ablegen gar nicht erst anbieten. */
+try{
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+}catch(e){}
 
 boot();
 /* Adresse ändert sich auf #alles, während die Seite offen ist:
